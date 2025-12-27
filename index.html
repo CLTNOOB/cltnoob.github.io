@@ -326,7 +326,7 @@ function finalizarTrade(){
   atualizar();
 } 
 function ganharDinheiro(){dinheiro+=renda;atualizar();}
-function upgrade(){if(dinheiro>=custoUpgrade){dinheiro-=custoUpgrade;renda++;nivel++;custoUpgrade=Math.floor(custoUpgrade*1.2);atualizar();}else alert('Dinheiro insuficiente');}
+function upgrade(){if(dinheiro>=custoUpgrade){dinheiro-=custoUpgrade;renda++;nivel++;custoUpgrade=Math.floor(custoUpgrade*0.5);atualizar();}else alert('Dinheiro insuficiente');}
 function comprarInvestimento(c,r){if(dinheiro>=c){dinheiro-=c;rendaPassiva+=r;atualizar();}}
 function comprarVeiculo(n,p){if(dinheiro>=p){dinheiro-=p;veiculosComprados.push({nome:n,preco:p});atualizar();}}
 function abrir(id){painelPrincipal.classList.add('hidden');document.getElementById(id).classList.remove('hidden');}
@@ -348,3 +348,4 @@ atualizar();
 </script>
 </body>
 </html>
+
