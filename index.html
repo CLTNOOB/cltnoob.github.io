@@ -18,14 +18,11 @@
       background: rgba(0,0,0,0.3);
     }
 
-    header h1 {
-      margin: 0;
-      font-size: 2.2rem;
-    }
+    header h1 { margin: 0; font-size: 2.2rem; }
 
     main {
       padding: 40px 20px;
-      max-width: 900px;
+      max-width: 1000px;
       margin: auto;
     }
 
@@ -37,10 +34,6 @@
       box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }
 
-    .card h2 {
-      margin-top: 0;
-    }
-
     button {
       padding: 12px 20px;
       border: none;
@@ -50,11 +43,24 @@
       color: #000;
       font-weight: bold;
       transition: transform 0.2s, background 0.2s;
+      margin: 5px 0;
+      width: 100%;
     }
 
-    button:hover {
-      transform: scale(1.05);
-      background: #00a8dd;
+    button:hover { transform: scale(1.05); background: #00a8dd; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .stat {
+      background: rgba(0,0,0,0.3);
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
     }
 
     footer {
@@ -68,32 +74,72 @@
 <body>
 
   <header>
-    <h1>🚀 Meu Primeiro Site</h1>
-    <p>Rodando direto no VS Code</p>
+    <h1>🚀 Plataforma de Negócios</h1>
+    <p>Simulação estilo tycoon</p>
   </header>
 
   <main>
-    <div class="card">
-      <h2>Sobre o site</h2>
-      <p>Este é um site simples feito apenas com <strong>HTML, CSS e JavaScript</strong>. Você pode abrir direto no navegador ou usar a extensão Live Server no VS Code.</p>
-    </div>
 
     <div class="card">
-      <h2>Interação</h2>
-      <p>Clique no botão abaixo para testar o JavaScript:</p>
-      <button onclick="mostrarMensagem()">Clique aqui</button>
-      <p id="mensagem"></p>
+      <h2>💼 Jogo de Negócios</h2>
+      <p>Gerencie seu dinheiro, invista e evolua seu império.</p>
+
+      <div class="stats">
+        <div class="stat">💰 Dinheiro<br><strong id="money">0</strong></div>
+        <div class="stat">📈 Renda / clique<br><strong id="income">1</strong></div>
+        <div class="stat">🏢 Nível<br><strong id="level">1</strong></div>
+      </div>
+
+      <button onclick="ganharDinheiro()">Ganhar dinheiro</button>
+      <button onclick="upgrade()">Upgrade (custa <span id="upgradeCost">50</span>)</button>
+      <button onclick="investir()">Investir (ganho aleatório)</button>
+
     </div>
+
   </main>
 
   <footer>
-    <p>© 2025 - Criado por você 😎</p>
+    <p>© 2025 - Projeto de simulação</p>
   </footer>
 
   <script>
-    function mostrarMensagem() {
-      document.getElementById("mensagem").innerText = "✅ JavaScript funcionando perfeitamente!";
+    let dinheiro = 0;
+    let renda = 1;
+    let nivel = 1;
+    let custoUpgrade = 50;
+
+    function atualizarTela() {
+      document.getElementById('money').innerText = dinheiro;
+      document.getElementById('income').innerText = renda;
+      document.getElementById('level').innerText = nivel;
+      document.getElementById('upgradeCost').innerText = custoUpgrade;
     }
+
+    function ganharDinheiro() {
+      dinheiro += renda;
+      atualizarTela();
+    }
+
+    function upgrade() {
+      if (dinheiro >= custoUpgrade) {
+        dinheiro -= custoUpgrade;
+        renda += 1;
+        nivel += 1;
+        custoUpgrade = Math.floor(custoUpgrade * 1.6);
+        atualizarTela();
+      } else {
+        alert('Dinheiro insuficiente!');
+      }
+    }
+
+    function investir() {
+      let ganho = Math.floor(Math.random() * 20);
+      dinheiro += ganho;
+      atualizarTela();
+      alert('Investimento retornou: +' + ganho);
+    }
+
+    atualizarTela();
   </script>
 
 </body>
