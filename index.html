@@ -17,7 +17,7 @@ button:hover{background:#00a8dd}
 .arrows{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:10px}
 .arrow{width:50px;height:50px;border-radius:50%;font-size:20px}
 #graph{height:200px;background:#000;margin-top:15px;position:relative;overflow:hidden}
-.line{position:absolute;width:100%;height:2px;background:#00ff99;top:50%}
+.line{position:absolute;width:100%;height:2px;background:#00ff99;top:50%;transition:top .7s cubic-bezier(.2,.9,.2,1);will-change:top} 
 </style>
 </head>
 <body>
@@ -40,6 +40,13 @@ button:hover{background:#00a8dd}
 <button onclick="abrir('graficos')">Gráficos</button>
 <button onclick="abrir('loja')">Loja</button>
 <button onclick="abrir('galeria')">Galeria</button>
+
+<!-- Sistema de salvamento manual / export / import -->
+<button onclick="salvar()">💾 Salvar (local)</button>
+<button onclick="exportarSave()">⬇️ Exportar Save</button>
+<input id="importFile" class="hidden" type="file" accept="application/json" onchange="importarSave(event)">
+<button onclick="document.getElementById('importFile').click()">⬆️ Importar Save</button>
+<button onclick="apagarSave()">🗑️ Apagar Save</button>
 </div>
 
 <div class="card hidden" id="investimentos">
@@ -93,21 +100,29 @@ function voltar(){document.querySelectorAll('.card').forEach(c=>c.classList.add(
 function mostrarGaleria(t){let h='';if(t==='veiculos'){veiculosComprados.forEach(v=>h+=`🚗 ${v.nome} - ${v.preco}<br>`)}listaGaleria.innerHTML=h||'Nada comprado';}
 
 function investirGrafico(dir){
-let v=Number(valorInvest.value);
-if(v<=0||v>dinheiro)return alert('Valor inválido');
-dinheiro-=v;
-let variacao=Math.floor(Math.random()*200-100);
-if(dir==='down')variacao*=-1;
-let ganho=Math.floor(v*(variacao/100));
-dinheiro+=v+ganho;
-resultadoGrafico.innerText=ganho;
-line.style.top=50-variacao/2+'%';
-atualizar();}
+  let v=Number(valorInvest.value);
+  if(v<=0||v>dinheiro) return alert('Valor inválido');
+  dinheiro-=v;
+  // definimos variação como um valor entre 0 e 100 e aplicamos direção
+  let variacao = Math.floor(Math.random()*101); // 0..100
+  if(dir === 'down') variacao = -Math.abs(variacao);
+  else variacao = Math.abs(variacao);
+  let ganho = Math.floor(v*(variacao/100));
+  dinheiro += v + ganho;
+  resultadoGrafico.innerText = ganho;
+  // anima a linha verticalmente (subir/descer) e volta ao centro após 1.2s
+  let targetTop = Math.max(5, Math.min(95, 50 - variacao/2));
+  line.style.top = targetTop + '%'; 
+  setTimeout(()=>{ line.style.top = '50%'; }, 1200);
+  atualizar();} 
 
 setInterval(()=>{dinheiro+=rendaPassiva;atualizar();},30000);
 
-function salvar(){localStorage.setItem('save',JSON.stringify({dinheiro,renda,nivel,rendaPassiva,custoUpgrade,veiculosComprados}));}
-function carregar(){let s=JSON.parse(localStorage.getItem('save'));if(!s)return;dinheiro=s.dinheiro;renda=s.renda;nivel=s.nivel;rendaPassiva=s.rendaPassiva;custoUpgrade=s.custoUpgrade;veiculosComprados=s.veiculosComprados||[];}
+function salvar(){localStorage.setItem('save',JSON.stringify({dinheiro,renda,nivel,rendaPassiva,custoUpgrade,veiculosComprados,casasCompradas}));}
+function carregar(){let raw=localStorage.getItem('save');if(!raw)return;try{let s=JSON.parse(raw);dinheiro=s.dinheiro||0;renda=s.renda||1;nivel=s.nivel||1;rendaPassiva=s.rendaPassiva||0;custoUpgrade=s.custoUpgrade||100;veiculosComprados=s.veiculosComprados||[];casasCompradas=s.casasCompradas||[];}catch(e){console.warn('Save inválido');}}
+function exportarSave(){salvar();const data=localStorage.getItem('save');const blob=new Blob([data],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='sim_save.json';a.click();URL.revokeObjectURL(url);}
+function importarSave(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const s=JSON.parse(r.result);dinheiro=s.dinheiro||0;renda=s.renda||1;nivel=s.nivel||1;rendaPassiva=s.rendaPassiva||0;custoUpgrade=s.custoUpgrade||100;veiculosComprados=s.veiculosComprados||[];casasCompradas=s.casasCompradas||[];salvar();atualizar();alert('Save importado com sucesso!');}catch(err){alert('Arquivo inválido');}};r.readAsText(f);e.target.value='';}
+function apagarSave(){if(confirm('Apagar save?')){localStorage.removeItem('save');dinheiro=0;renda=1;nivel=1;rendaPassiva=0;custoUpgrade=100;veiculosComprados=[];casasCompradas=[];atualizar();alert('Save apagado');}}
 carregar();atualizar();
 </script>
 </body>
