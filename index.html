@@ -22,6 +22,8 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .trendUp{color:#0f0}
 .trendDown{color:#f33}
 .trendNeutral{color:#ccc}
+#tradeInfo{background:rgba(255,255,255,0.03);border-radius:8px}
+#closeTrade{width:100%}
 /* O canvas é desenhado por JS; a linha muda de cor conforme a direção atual */ 
 </style>
 </head>
@@ -70,10 +72,17 @@ button:disabled{opacity:.55;cursor:not-allowed}
   <canvas id="chart" width="800" height="200"></canvas>
 </div>
 <div id="marketInfo" style="margin-top:8px">Preço: <strong id="marketPrice">100.00</strong> | Tendência: <strong id="marketTrend">Neutro</strong> | Status: <span id="marketStatus">Pronto</span></div>
+
+<!-- Painel de informações e controle do trade -->
+<div id="tradeControls" style="margin-top:10px">
+  <div id="tradeInfo" class="stat" style="padding:10px">Nenhum trade aberto</div>
+  <button id="closeTrade" class="hidden" onclick="pararTrade()" style="background:#ff5252;color:#fff;padding:10px;border-radius:8px;margin-top:8px">Fechar Trade</button>
+  <div style="font-size:12px;color:#ccc;margin-top:6px">Clique em <strong>⬆</strong> para abrir compra (up) ou <strong>⬇</strong> para venda (down). Encerre com <strong>Fechar Trade</strong>.</div>
+</div>
+
 <div class="arrows"> 
-<button class="arrow" onclick="investirGrafico('up')">⬆</button>
-<button class="arrow" onclick="investirGrafico('down')">⬇</button>
-<button class="arrow hidden" id="stopButton" onclick="pararTrade()">⏹️</button>
+<button class="arrow tradeOpenBtn" onclick="investirGrafico('up')">⬆</button>
+<button class="arrow tradeOpenBtn" onclick="investirGrafico('down')">⬇</button>
 </div>  
 <div style="margin-top:10px">Resultado: <strong id="resultadoGrafico">0</strong></div>
 <button onclick="voltar()">⬅ Voltar</button>
@@ -211,6 +220,8 @@ function animate(now){
   drawData[drawData.length - 1] = displayedLast;
 
   drawChart(drawData);
+  // atualizar informações do trade em tempo real (P&L não realizado)
+  updateTradeInfo();
   requestAnimationFrame(animate);
 }
 
@@ -269,11 +280,29 @@ function investirGrafico(dir){
   tradeDir = dir;
   tradeStartPrice = marketPriceVal;
   dinheiro -= v;
-  document.querySelectorAll('.arrow').forEach(b=>b.disabled=true);
-  document.getElementById('stopButton').classList.remove('hidden');
+  // desabilita apenas os botões de abrir trade (mantém botão de fechar ativo)
+  document.querySelectorAll('.tradeOpenBtn').forEach(b=>b.disabled=true);
+  document.getElementById('closeTrade').classList.remove('hidden');
   marketStatus.innerText = 'Trade Aberto';
   atualizar();
+  updateTradeInfo();
 }
+
+// atualiza info do trade em tempo real (chamar dentro do loop de animação ou ao mudar preço)
+function updateTradeInfo(){
+  const info = document.getElementById('tradeInfo');
+  if(!isInvesting){ info.innerHTML = 'Nenhum trade aberto'; document.getElementById('closeTrade').classList.add('hidden'); return; }
+  const dirTxt = tradeDir === 'up' ? 'Compra (UP)' : 'Venda (DOWN)';
+  const percentChange = (marketPriceVal - tradeStartPrice) / tradeStartPrice;
+  const effectivePercent = (tradeDir === 'up') ? percentChange : -percentChange;
+  const unrealized = Math.floor(tradeStake * effectivePercent);
+  const sign = unrealized >= 0 ? '+' : '';
+  info.innerHTML = `Trade: ${dirTxt}<br>Abertura: ${tradeStartPrice.toFixed(2)} | Stake: ${tradeStake}<br> P&L Atual: <strong style="color:${unrealized>=0?"#4caf50":"#ff5252"}">${sign}${unrealized}</strong>`;
+  // Atualiza botão de fechar com P&L atual
+  const closeBtn = document.getElementById('closeTrade');
+  if(closeBtn){ closeBtn.textContent = `Fechar Trade — ${sign}${unrealized}`; closeBtn.style.background = unrealized >= 0 ? '#2e7d32' : '#b00020'; }
+}
+
 
 function pararTrade(){
   if(!isInvesting) return; // nada a fechar
@@ -289,9 +318,11 @@ function finalizarTrade(){
   resultadoGrafico.innerText = ganho;
   marketStatus.innerText = ganho >= 0 ? 'Ganhou' : 'Perdeu';
   setTimeout(()=>{ marketStatus.innerText = 'Pronto'; }, 1200);
-  document.querySelectorAll('.arrow').forEach(b=>b.disabled=false);
-  document.getElementById('stopButton').classList.add('hidden');
+  // reabilita os botões de abrir trade
+  document.querySelectorAll('.tradeOpenBtn').forEach(b=>b.disabled=false);
+  document.getElementById('closeTrade').classList.add('hidden');
   isInvesting = false; tradeStake = 0; tradeDir = null; tradeStartPrice = marketPriceVal;
+  updateTradeInfo();
   atualizar();
 } 
 function ganharDinheiro(){dinheiro+=renda;atualizar();}
