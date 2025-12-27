@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Meu Site no VS Code</title>
+  <title>Simulação de Negócios</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
@@ -18,11 +18,9 @@
       background: rgba(0,0,0,0.3);
     }
 
-    header h1 { margin: 0; font-size: 2.2rem; }
-
     main {
-      padding: 40px 20px;
-      max-width: 1000px;
+      padding: 30px 20px;
+      max-width: 1100px;
       margin: auto;
     }
 
@@ -34,113 +32,161 @@
       box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }
 
-    button {
-      padding: 12px 20px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      background: #00c6ff;
-      color: #000;
-      font-weight: bold;
-      transition: transform 0.2s, background 0.2s;
-      margin: 5px 0;
-      width: 100%;
-    }
-
-    button:hover { transform: scale(1.05); background: #00a8dd; }
-
     .stats {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 15px;
-      margin-top: 15px;
+      margin-bottom: 20px;
     }
 
     .stat {
-      background: rgba(0,0,0,0.3);
+      background: rgba(0,0,0,0.35);
       padding: 15px;
       border-radius: 10px;
       text-align: center;
     }
 
+    button {
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: #00c6ff;
+      font-weight: bold;
+      margin-top: 10px;
+      width: 100%;
+    }
+
+    button:hover { background: #00a8dd; }
+
+    .hidden { display: none; }
+
     footer {
       text-align: center;
       padding: 15px;
       background: rgba(0,0,0,0.4);
-      font-size: 0.9rem;
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>🚀 Plataforma de Negócios</h1>
-    <p>Simulação estilo tycoon</p>
-  </header>
+<header>
+  <h1>💼 Simulador de Negócios</h1>
+  <p>Construa sua renda automática</p>
+</header>
 
-  <main>
+<main>
 
-    <div class="card">
-      <h2>💼 Jogo de Negócios</h2>
-      <p>Gerencie seu dinheiro, invista e evolua seu império.</p>
-
-      <div class="stats">
-        <div class="stat">💰 Dinheiro<br><strong id="money">0</strong></div>
-        <div class="stat">📈 Renda / clique<br><strong id="income">1</strong></div>
-        <div class="stat">🏢 Nível<br><strong id="level">1</strong></div>
-      </div>
-
-      <button onclick="ganharDinheiro()">Ganhar dinheiro</button>
-      <button onclick="upgrade()">Upgrade (custa <span id="upgradeCost">50</span>)</button>
-      <button onclick="investir()">Investir (ganho aleatório)</button>
-
+  <!-- PAINEL PRINCIPAL -->
+  <div class="card" id="painelPrincipal">
+    <div class="stats">
+      <div class="stat">💰 Dinheiro<br><strong id="money">0</strong></div>
+      <div class="stat">📈 Renda / clique<br><strong id="income">1</strong></div>
+      <div class="stat">🏢 Nível<br><strong id="level">1</strong></div>
+      <div class="stat">🏦 Renda Passiva<br><strong id="passive">0</strong></div>
     </div>
 
-  </main>
+    <button onclick="ganharDinheiro()">Ganhar dinheiro</button>
+    <button onclick="upgrade()">Upgrade</button>
+    <button onclick="abrirInvestimentos()">Investimentos</button>
+  </div>
 
-  <footer>
-    <p>© 2025 - Projeto de simulação</p>
-  </footer>
+  <!-- ABA DE INVESTIMENTOS -->
+  <div class="card hidden" id="painelInvestimentos">
+    <h2>🏦 Investimentos disponíveis</h2>
 
-  <script>
-    let dinheiro = 0;
-    let renda = 1;
-    let nivel = 1;
-    let custoUpgrade = 50;
+    <div class="stat">
+      <strong>🏠 Alugar Casa</strong><br>
+      Custo: 5.000<br>
+      Retorno: +50 a cada 30s<br>
+      <button onclick="comprarInvestimento('casa')">Comprar</button>
+    </div>
 
-    function atualizarTela() {
-      document.getElementById('money').innerText = dinheiro;
-      document.getElementById('income').innerText = renda;
-      document.getElementById('level').innerText = nivel;
-      document.getElementById('upgradeCost').innerText = custoUpgrade;
-    }
+    <div class="stat" style="margin-top:15px;">
+      <strong>🏪 Loja Pequena</strong><br>
+      Custo: 15.000<br>
+      Retorno: +150 a cada 30s<br>
+      <button onclick="comprarInvestimento('loja')">Comprar</button>
+    </div>
 
-    function ganharDinheiro() {
-      dinheiro += renda;
-      atualizarTela();
-    }
+    <div class="stat" style="margin-top:15px;">
+      <strong>🏢 Prédio Comercial</strong><br>
+      Custo: 50.000<br>
+      Retorno: +500 a cada 30s<br>
+      <button onclick="comprarInvestimento('predio')">Comprar</button>
+    </div>
 
-    function upgrade() {
-      if (dinheiro >= custoUpgrade) {
-        dinheiro -= custoUpgrade;
-        renda += 1;
-        nivel += 1;
-        custoUpgrade = Math.floor(custoUpgrade * 1.6);
-        atualizarTela();
-      } else {
-        alert('Dinheiro insuficiente!');
-      }
-    }
+    <button style="margin-top:20px;" onclick="voltar()">⬅ Voltar</button>
+  </div>
 
-    function investir() {
-      let ganho = Math.floor(Math.random() * 20);
-      dinheiro += ganho;
-      atualizarTela();
-      alert('Investimento retornou: +' + ganho);
-    }
+</main>
 
+<footer>
+  <p>© 2025 - Simulação econômica</p>
+</footer>
+
+<script>
+  let dinheiro = 0;
+  let renda = 1;
+  let nivel = 1;
+  let rendaPassiva = 0;
+
+  const investimentos = {
+    casa: { custo: 5000, retorno: 50 },
+    loja: { custo: 15000, retorno: 150 },
+    predio: { custo: 50000, retorno: 500 }
+  };
+
+  function atualizarTela() {
+    document.getElementById('money').innerText = dinheiro;
+    document.getElementById('income').innerText = renda;
+    document.getElementById('level').innerText = nivel;
+    document.getElementById('passive').innerText = rendaPassiva;
+  }
+
+  function ganharDinheiro() {
+    dinheiro += renda;
     atualizarTela();
-  </script>
+  }
+
+  function upgrade() {
+    let custo = nivel * 100;
+    if (dinheiro >= custo) {
+      dinheiro -= custo;
+      renda++;
+      nivel++;
+      atualizarTela();
+    } else alert('Dinheiro insuficiente');
+  }
+
+  function abrirInvestimentos() {
+    document.getElementById('painelPrincipal').classList.add('hidden');
+    document.getElementById('painelInvestimentos').classList.remove('hidden');
+  }
+
+  function voltar() {
+    document.getElementById('painelInvestimentos').classList.add('hidden');
+    document.getElementById('painelPrincipal').classList.remove('hidden');
+  }
+
+  function comprarInvestimento(tipo) {
+    const inv = investimentos[tipo];
+    if (dinheiro >= inv.custo) {
+      dinheiro -= inv.custo;
+      rendaPassiva += inv.retorno;
+      atualizarTela();
+      alert('Investimento adquirido!');
+    } else alert('Dinheiro insuficiente');
+  }
+
+  setInterval(() => {
+    dinheiro += rendaPassiva;
+    atualizarTela();
+  }, 30000);
+
+  atualizarTela();
+</script>
 
 </body>
 </html>
+
