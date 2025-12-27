@@ -5,186 +5,129 @@
   <title>Simulação de Negócios</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-      color: #fff;
-    }
-
-    header {
-      padding: 20px;
-      text-align: center;
-      background: rgba(0,0,0,0.3);
-    }
-
-    main {
-      padding: 30px 20px;
-      max-width: 1100px;
-      margin: auto;
-    }
-
-    .card {
-      background: rgba(255,255,255,0.08);
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-      margin-bottom: 20px;
-    }
-
-    .stat {
-      background: rgba(0,0,0,0.35);
-      padding: 15px;
-      border-radius: 10px;
-      text-align: center;
-    }
-
-    button {
-      padding: 12px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      background: #00c6ff;
-      font-weight: bold;
-      margin-top: 10px;
-      width: 100%;
-    }
-
-    button:hover { background: #00a8dd; }
-
-    .hidden { display: none; }
-
-    footer {
-      text-align: center;
-      padding: 15px;
-      background: rgba(0,0,0,0.4);
-    }
+    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);color:#fff}
+    header{text-align:center;padding:20px;background:rgba(0,0,0,.3)}
+    main{padding:25px;max-width:1200px;margin:auto}
+    .card{background:rgba(255,255,255,.08);border-radius:12px;padding:20px;margin-bottom:20px;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px}
+    .stat{background:rgba(0,0,0,.35);padding:15px;border-radius:10px;text-align:center}
+    button{padding:12px;border:none;border-radius:8px;cursor:pointer;background:#00c6ff;font-weight:bold;width:100%;margin-top:10px}
+    button:hover{background:#00a8dd}
+    .hidden{display:none}
   </style>
 </head>
 <body>
 
 <header>
   <h1>💼 Simulador de Negócios</h1>
-  <p>Construa sua renda automática</p>
+  <p>Construa sua vida de luxo</p>
 </header>
 
 <main>
 
-  <!-- PAINEL PRINCIPAL -->
-  <div class="card" id="painelPrincipal">
-    <div class="stats">
-      <div class="stat">💰 Dinheiro<br><strong id="money">0</strong></div>
-      <div class="stat">📈 Renda / clique<br><strong id="income">1</strong></div>
-      <div class="stat">🏢 Nível<br><strong id="level">1</strong></div>
-      <div class="stat">🏦 Renda Passiva<br><strong id="passive">0</strong></div>
-    </div>
-
-    <button onclick="ganharDinheiro()">Ganhar dinheiro</button>
-    <button onclick="upgrade()">Upgrade</button>
-    <button onclick="abrirInvestimentos()">Investimentos</button>
+<!-- PAINEL PRINCIPAL -->
+<div class="card" id="painelPrincipal">
+  <div class="stats">
+    <div class="stat">💰 Dinheiro<br><strong id="money">0</strong></div>
+    <div class="stat">📈 Renda / clique<br><strong id="income">1</strong></div>
+    <div class="stat">🏢 Nível<br><strong id="level">1</strong></div>
+    <div class="stat">🏦 Renda Passiva<br><strong id="passive">0</strong></div>
   </div>
 
-  <!-- ABA DE INVESTIMENTOS -->
-  <div class="card hidden" id="painelInvestimentos">
-    <h2>🏦 Investimentos disponíveis</h2>
+  <button onclick="ganharDinheiro()">Ganhar dinheiro</button>
+  <button onclick="upgrade()">Upgrade (custo: <span id="upgradeCost">100</span>)</button>
+  <button onclick="abrir('investimentos')">Investimentos</button>
+  <button onclick="abrir('loja')">Loja</button>
+  <button onclick="abrir('galeria')">Galeria</button>
+</div>
 
-    <div class="stat">
-      <strong>🏠 Alugar Casa</strong><br>
-      Custo: 5.000<br>
-      Retorno: +50 a cada 30s<br>
-      <button onclick="comprarInvestimento('casa')">Comprar</button>
-    </div>
+<!-- INVESTIMENTOS -->
+<div class="card hidden" id="investimentos">
+  <h2>🏦 Investimentos</h2>
+  <div class="stat">🏠 Casa Alugada<br>Custo: 5.000<br>Retorno: +50 / 30s<button onclick="comprarInvestimento(5000,50)">Comprar</button></div>
+  <div class="stat" style="margin-top:10px">🏪 Loja<br>Custo: 15.000<br>Retorno: +150 / 30s<button onclick="comprarInvestimento(15000,150)">Comprar</button></div>
+  <div class="stat" style="margin-top:10px">🏢 Prédio<br>Custo: 50.000<br>Retorno: +500 / 30s<button onclick="comprarInvestimento(50000,500)">Comprar</button></div>
+  <button onclick="voltar()">⬅ Voltar</button>
+</div>
 
-    <div class="stat" style="margin-top:15px;">
-      <strong>🏪 Loja Pequena</strong><br>
-      Custo: 15.000<br>
-      Retorno: +150 a cada 30s<br>
-      <button onclick="comprarInvestimento('loja')">Comprar</button>
-    </div>
+<!-- LOJA -->
+<div class="card hidden" id="loja">
+  <h2>🛒 Loja</h2>
+  <div class="stat">🚗 BMW<br>Preço: 120.000<button onclick="comprarVeiculo('BMW',120000)">Comprar</button></div>
+  <div class="stat" style="margin-top:10px">🏠 Casa Luxo<br>Preço: 300.000<button onclick="comprarCasa('Casa Luxo',300000)">Comprar</button></div>
+  <div class="stat" style="margin-top:10px">✈️ Avião<br>Preço: 1.000.000<button onclick="comprarVeiculo('Avião',1000000)">Comprar</button></div>
+  <button onclick="voltar()">⬅ Voltar</button>
+</div>
 
-    <div class="stat" style="margin-top:15px;">
-      <strong>🏢 Prédio Comercial</strong><br>
-      Custo: 50.000<br>
-      Retorno: +500 a cada 30s<br>
-      <button onclick="comprarInvestimento('predio')">Comprar</button>
-    </div>
-
-    <button style="margin-top:20px;" onclick="voltar()">⬅ Voltar</button>
-  </div>
+<!-- GALERIA -->
+<div class="card hidden" id="galeria">
+  <h2>🖼️ Galeria</h2>
+  <button onclick="mostrarGaleria('veiculos')">Veículos</button>
+  <button onclick="mostrarGaleria('casas')">Casas</button>
+  <div id="listaGaleria" style="margin-top:15px"></div>
+  <button onclick="voltar()">⬅ Voltar</button>
+</div>
 
 </main>
 
-<footer>
-  <p>© 2025 - Simulação econômica</p>
-</footer>
-
 <script>
-  let dinheiro = 0;
-  let renda = 1;
-  let nivel = 1;
-  let rendaPassiva = 0;
+let dinheiro=0,renda=1,nivel=1,rendaPassiva=0;
+let custoUpgrade=100;
+let veiculosComprados=[],casasCompradas=[];
 
-  const investimentos = {
-    casa: { custo: 5000, retorno: 50 },
-    loja: { custo: 15000, retorno: 150 },
-    predio: { custo: 50000, retorno: 500 }
-  };
+function atualizar(){
+  money.innerText=dinheiro;
+  income.innerText=renda;
+  level.innerText=nivel;
+  passive.innerText=rendaPassiva;
+  upgradeCost.innerText=custoUpgrade;
+}
 
-  function atualizarTela() {
-    document.getElementById('money').innerText = dinheiro;
-    document.getElementById('income').innerText = renda;
-    document.getElementById('level').innerText = nivel;
-    document.getElementById('passive').innerText = rendaPassiva;
+function ganharDinheiro(){dinheiro+=renda;atualizar();}
+
+function upgrade(){
+  if(dinheiro>=custoUpgrade){
+    dinheiro-=custoUpgrade;
+    renda++;nivel++;
+    custoUpgrade=Math.floor(custoUpgrade*1.7);
+    atualizar();
+  } else alert('Dinheiro insuficiente');
+}
+
+function comprarInvestimento(custo,retorno){
+  if(dinheiro>=custo){dinheiro-=custo;rendaPassiva+=retorno;atualizar();}
+  else alert('Dinheiro insuficiente');
+}
+
+function comprarVeiculo(nome,preco){
+  if(dinheiro>=preco){dinheiro-=preco;veiculosComprados.push({nome,preco});atualizar();}
+  else alert('Dinheiro insuficiente');
+}
+
+function comprarCasa(nome,preco){
+  if(dinheiro>=preco){dinheiro-=preco;casasCompradas.push({nome,preco});atualizar();}
+  else alert('Dinheiro insuficiente');
+}
+
+function abrir(id){painelPrincipal.classList.add('hidden');document.getElementById(id).classList.remove('hidden');}
+function voltar(){document.querySelectorAll('.card').forEach(c=>c.classList.add('hidden'));painelPrincipal.classList.remove('hidden');}
+
+function mostrarGaleria(tipo){
+  let html='';
+  if(tipo==='veiculos'){
+    if(veiculosComprados.length===0) html='Nenhum veículo comprado';
+    veiculosComprados.forEach(v=>html+=`🚗 ${v.nome} - comprado por ${v.preco}<br>`);
   }
-
-  function ganharDinheiro() {
-    dinheiro += renda;
-    atualizarTela();
+  if(tipo==='casas'){
+    if(casasCompradas.length===0) html='Nenhuma casa comprada';
+    casasCompradas.forEach(c=>html+=`🏠 ${c.nome} - comprado por ${c.preco}<br>`);
   }
+  listaGaleria.innerHTML=html;
+}
 
-  function upgrade() {
-    let custo = nivel * 100;
-    if (dinheiro >= custo) {
-      dinheiro -= custo;
-      renda++;
-      nivel++;
-      atualizarTela();
-    } else alert('Dinheiro insuficiente');
-  }
+setInterval(()=>{dinheiro+=rendaPassiva;atualizar();},30000);
 
-  function abrirInvestimentos() {
-    document.getElementById('painelPrincipal').classList.add('hidden');
-    document.getElementById('painelInvestimentos').classList.remove('hidden');
-  }
-
-  function voltar() {
-    document.getElementById('painelInvestimentos').classList.add('hidden');
-    document.getElementById('painelPrincipal').classList.remove('hidden');
-  }
-
-  function comprarInvestimento(tipo) {
-    const inv = investimentos[tipo];
-    if (dinheiro >= inv.custo) {
-      dinheiro -= inv.custo;
-      rendaPassiva += inv.retorno;
-      atualizarTela();
-      alert('Investimento adquirido!');
-    } else alert('Dinheiro insuficiente');
-  }
-
-  setInterval(() => {
-    dinheiro += rendaPassiva;
-    atualizarTela();
-  }, 30000);
-
-  atualizarTela();
+atualizar();
 </script>
 
 </body>
