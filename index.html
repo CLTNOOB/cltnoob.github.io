@@ -18,7 +18,11 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .arrows{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:10px}
 .arrow{width:50px;height:50px;border-radius:50%;font-size:20px}
 #graph{height:200px;background:#000;margin-top:15px;position:relative;overflow:hidden}
-.line{position:absolute;width:100%;height:2px;background:#00ff99;top:50%;transition:top .7s cubic-bezier(.2,.9,.2,1);will-change:top} 
+#chart{width:100%;height:200px;background:#000;border-radius:6px;display:block}
+.trendUp{color:#0f0}
+.trendDown{color:#f33}
+.trendNeutral{color:#ccc}
+/* O canvas é desenhado por JS; a linha muda de cor conforme a direção atual */ 
 </style>
 </head>
 <body>
@@ -62,12 +66,15 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <h2>📊 Mercado (alto risco)</h2>
 <p>Escolha o valor e a direção</p>
 <input id="valorInvest" type="number" placeholder="Valor para investir" style="width:100%;padding:10px;border-radius:6px;border:none">
-<div id="graph"><div class="line" id="line"></div></div>
-<div id="marketInfo" style="margin-top:8px">Preço: <strong id="marketPrice">50.0</strong> | Status: <span id="marketStatus">Pronto</span></div>
+<div id="graph">
+  <canvas id="chart" width="800" height="200"></canvas>
+</div>
+<div id="marketInfo" style="margin-top:8px">Preço: <strong id="marketPrice">100.00</strong> | Tendência: <strong id="marketTrend">Neutro</strong> | Status: <span id="marketStatus">Pronto</span></div>
 <div class="arrows"> 
 <button class="arrow" onclick="investirGrafico('up')">⬆</button>
 <button class="arrow" onclick="investirGrafico('down')">⬇</button>
-</div>
+<button class="arrow hidden" id="stopButton" onclick="pararTrade()">⏹️</button>
+</div>  
 <div style="margin-top:10px">Resultado: <strong id="resultadoGrafico">0</strong></div>
 <button onclick="voltar()">⬅ Voltar</button>
 </div>
@@ -90,9 +97,203 @@ button:disabled{opacity:.55;cursor:not-allowed}
 </main>
 <script>
 let dinheiro=0,renda=1,nivel=1,rendaPassiva=0,custoUpgrade=100;
-let veiculosComprados=[],casasCompradas=[],isInvesting=false; 
+let veiculosComprados=[],casasCompradas=[],isInvesting=false;
 
-function atualizar(){money.innerText=dinheiro;income.innerText=renda;level.innerText=nivel;passive.innerText=rendaPassiva;upgradeCost.innerText=custoUpgrade;salvar();}
+// ==========================
+// Parâmetros de mercado (fácil de alterar)
+// ==========================
+const initialPrice = 100.00;        // preço inicial
+const updateInterval = 500;         // ms entre atualizações de preço (ex: 500ms)
+const percentRange = 1.5;           // variação máxima percentual por tick (+/- percentRange)
+const trendMinSec = 4;              // duração mínima de uma tendência (segundos)
+const trendMaxSec = 12;             // duração máxima de uma tendência (segundos)
+const volatility = 1.0;             // multiplicador de volatilidade (ajusta amplitude)
+const historyMax = 120;             // número de pontos do gráfico visíveis
+
+// Estado do mercado
+let marketPriceVal = initialPrice;
+let priceHistory = Array(historyMax).fill(initialPrice);
+let trend = { type: 'neutral', expiresAt: 0 };
+
+// Variáveis de animação e desenho
+const canvas = document.getElementById('chart');
+const ctx = canvas.getContext('2d');
+let anim = { startPrice: marketPriceVal, endPrice: marketPriceVal, startTime: 0, duration: updateInterval };
+
+// Estado de trade
+let tradeStartPrice = 0, tradeStake = 0, tradeDir = null;
+
+// Atualiza valores visuais e salva (sem forçar saltos no gráfico)
+function atualizar(){
+  money.innerText = dinheiro;
+  income.innerText = renda;
+  level.innerText = nivel;
+  passive.innerText = rendaPassiva;
+  upgradeCost.innerText = custoUpgrade;
+  marketPrice.innerText = marketPriceVal.toFixed(2);
+  marketTrend.innerText = trend.type.charAt(0).toUpperCase() + trend.type.slice(1);
+  salvar();
+}
+
+// ==========================
+// Motor de mercado (tendências e atualização periódica)
+// ==========================
+// Inicia mercado e ciclo de tendências
+function startMarket(){
+  // popular histórico se estiver vazio
+  if(!priceHistory || priceHistory.length < historyMax) priceHistory = Array(historyMax).fill(marketPriceVal);
+  scheduleNextTrend();
+  scheduleTick();
+  anim.startTime = performance.now();
+  requestAnimationFrame(animate);
+}
+
+// Schedule a next trend cycle
+function scheduleNextTrend(){
+  const types = ['up','neutral','down'];
+  // chance diferente: priorizar neutro e alta ligeiramente
+  const r = Math.random();
+  let t;
+  if(r < 0.40) t = 'up';
+  else if(r < 0.75) t = 'neutral';
+  else t = 'down';
+  const dur = (Math.random() * (trendMaxSec - trendMinSec) + trendMinSec) * 1000; // ms
+  trend.type = t;
+  trend.expiresAt = Date.now() + dur;
+  // ao fim da duração, agenda próxima tendência
+  setTimeout(scheduleNextTrend, dur);
+}
+
+// Agende o próximo tick de preço
+function scheduleTick(){
+  setTimeout(()=>{
+    tickPrice();
+    scheduleTick();
+  }, updateInterval);
+}
+
+// Calcula novo preço baseado em tendência, ruído e volatilidade
+function tickPrice(){
+  // base random percentual entre -percentRange e +percentRange
+  const base = (Math.random() * 2 - 1) * percentRange;
+  // bias do trend: torna mais provável movimento na direção da tendência
+  let bias = 0;
+  if(trend.type === 'up') bias = Math.random() * (percentRange*0.6); // positive bias
+  else if(trend.type === 'down') bias = -Math.random() * (percentRange*0.6); // negative bias
+  // final percent considerando volatilidade
+  const pct = (base + bias) * volatility;
+  const newPrice = Math.max(0.01, marketPriceVal * (1 + pct/100));
+
+  // Shift histórico
+  priceHistory.push(newPrice);
+  if(priceHistory.length > historyMax) priceHistory.shift();
+
+  // ajustar animação para transição suave entre valores
+  anim.startPrice = marketPriceVal;
+  anim.endPrice = newPrice;
+  anim.startTime = performance.now();
+  anim.duration = updateInterval;
+
+  marketPriceVal = newPrice;
+  atualizar();
+}
+
+// Desenho e animação contínua (requestAnimationFrame)
+function animate(now){
+  // interpolar último ponto para suavizar movimento
+  let t = Math.min(1, (now - anim.startTime) / anim.duration);
+  // usar ease in-out para suavizar
+  const ease = (t*(2-t));
+  const displayedLast = anim.startPrice + (anim.endPrice - anim.startPrice) * ease;
+
+  // construir array de y-values a desenhar (substitui último item por displayedLast)
+  const drawData = priceHistory.slice();
+  drawData[drawData.length - 1] = displayedLast;
+
+  drawChart(drawData);
+  requestAnimationFrame(animate);
+}
+
+// Desenha o gráfico no canvas (linha, cor conforme direção instantânea)
+function drawChart(data){
+  const w = canvas.width = canvas.clientWidth;
+  const h = canvas.height = canvas.clientHeight;
+
+  // cleared background (fundo escuro)
+  ctx.fillStyle = '#0a0a0a';
+  ctx.fillRect(0,0,w,h);
+
+  // calcular domínio vertical
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const pad = (max - min) * 0.1 + 0.0001;
+  const vmin = min - pad;
+  const vmax = max + pad;
+
+  // mapeamento price -> y
+  const priceToY = p => h - ((p - vmin) / (vmax - vmin)) * h;
+
+  // decidir cor pela variação recente
+  const last = data[data.length-1];
+  const prev = data[data.length-2] || last;
+  const slopeUp = (last - prev) >= 0;
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = slopeUp ? '#4caf50' : '#ff5252';
+  ctx.beginPath();
+  for(let i=0;i<data.length;i++){
+    const x = (w * i) / (data.length - 1);
+    const y = priceToY(data[i]);
+    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+
+  // small marker for last price
+  ctx.fillStyle = slopeUp ? '#4caf50' : '#ff5252';
+  ctx.beginPath();
+  const lx = w * (data.length - 1) / (data.length - 1);
+  const ly = priceToY(last);
+  ctx.arc(lx, ly, 3, 0, Math.PI*2);
+  ctx.fill();
+}
+
+// ==========================
+// Trade: abrir, fechar manualmente e calcular resultado
+// ==========================
+function investirGrafico(dir){
+  if(isInvesting) return alert('Já existe um trade em execução');
+  const v = Number(valorInvest.value);
+  if(!v || v<=0 || v>dinheiro) return alert('Valor inválido');
+  // abrir posição
+  isInvesting = true;
+  tradeStake = v;
+  tradeDir = dir;
+  tradeStartPrice = marketPriceVal;
+  dinheiro -= v;
+  document.querySelectorAll('.arrow').forEach(b=>b.disabled=true);
+  document.getElementById('stopButton').classList.remove('hidden');
+  marketStatus.innerText = 'Trade Aberto';
+  atualizar();
+}
+
+function pararTrade(){
+  if(!isInvesting) return; // nada a fechar
+  finalizarTrade();
+}
+
+function finalizarTrade(){
+  // calcula mudança percentual efetiva
+  const percentChange = (marketPriceVal - tradeStartPrice) / tradeStartPrice;
+  const effectivePercent = (tradeDir === 'up') ? percentChange : -percentChange;
+  const ganho = Math.floor(tradeStake * effectivePercent);
+  dinheiro += tradeStake + ganho;
+  resultadoGrafico.innerText = ganho;
+  marketStatus.innerText = ganho >= 0 ? 'Ganhou' : 'Perdeu';
+  setTimeout(()=>{ marketStatus.innerText = 'Pronto'; }, 1200);
+  document.querySelectorAll('.arrow').forEach(b=>b.disabled=false);
+  document.getElementById('stopButton').classList.add('hidden');
+  isInvesting = false; tradeStake = 0; tradeDir = null; tradeStartPrice = marketPriceVal;
+  atualizar();
+} 
 function ganharDinheiro(){dinheiro+=renda;atualizar();}
 function upgrade(){if(dinheiro>=custoUpgrade){dinheiro-=custoUpgrade;renda++;nivel++;custoUpgrade=Math.floor(custoUpgrade*1.2);atualizar();}else alert('Dinheiro insuficiente');}
 function comprarInvestimento(c,r){if(dinheiro>=c){dinheiro-=c;rendaPassiva+=r;atualizar();}}
@@ -101,55 +302,18 @@ function abrir(id){painelPrincipal.classList.add('hidden');document.getElementBy
 function voltar(){document.querySelectorAll('.card').forEach(c=>c.classList.add('hidden'));painelPrincipal.classList.remove('hidden');}
 function mostrarGaleria(t){let h='';if(t==='veiculos'){veiculosComprados.forEach(v=>h+=`🚗 ${v.nome} - ${v.preco}<br>`)}listaGaleria.innerHTML=h||'Nada comprado';}
 
-function investirGrafico(dir){
-  if(isInvesting) return;
-  let v = Number(valorInvest.value);
-  if(v<=0||v>dinheiro) return alert('Valor inválido');
-  isInvesting = true;
-  // bloquear botões enquanto a simulação roda
-  document.querySelectorAll('.arrow').forEach(b=>b.disabled=true);
-  dinheiro -= v; // retira o valor apostado
-  const duration = 3000; // ms
-  const tick = 100; // ms
-  const ticks = Math.floor(duration / tick);
-  const startPrice = 50;
-  let price = startPrice;
-  marketStatus.innerText = 'Executando...';
-  marketPrice.innerText = price.toFixed(1);
-  let step = 0;
-  const iv = setInterval(()=>{
-    // bias em direção escolhida + ruído aleatório
-    const bias = (dir === 'up') ? (Math.random()*1.2 + 0.3) : -(Math.random()*1.2 + 0.3);
-    const noise = (Math.random() - 0.5) * 1.2;
-    price += bias + noise;
-    price = Math.max(5, Math.min(95, price));
-    marketPrice.innerText = price.toFixed(1);
-    line.style.top = (100 - price) + '%';
-    step++;
-    if(step >= ticks){
-      clearInterval(iv);
-      // cálculo de ganho: para 'up', lucro quando price > startPrice; para 'down' lucro quando price < startPrice
-      const percentChange = (price - startPrice)/startPrice;
-      const effectivePercent = (dir === 'up') ? percentChange : -percentChange;
-      const ganho = Math.floor(v * effectivePercent);
-      dinheiro += v + ganho; // devolve valor apostado + lucro (ou prejuízo se negativo)
-      resultadoGrafico.innerText = ganho;
-      marketStatus.innerText = ganho >= 0 ? 'Ganhou' : 'Perdeu';
-      setTimeout(()=>{ marketStatus.innerText = 'Pronto'; }, 1200);
-      document.querySelectorAll('.arrow').forEach(b=>b.disabled=false);
-      isInvesting = false;
-      atualizar();
-    }
-  }, tick);
-}
+// (Trecho antigo de trade removido — trade agora usa o motor de mercado contínuo)
+ 
 setInterval(()=>{dinheiro+=rendaPassiva;atualizar();},30000);
 
-function salvar(){localStorage.setItem('save',JSON.stringify({dinheiro,renda,nivel,rendaPassiva,custoUpgrade,veiculosComprados,casasCompradas}));}
-function carregar(){let raw=localStorage.getItem('save');if(!raw)return;try{let s=JSON.parse(raw);dinheiro=s.dinheiro||0;renda=s.renda||1;nivel=s.nivel||1;rendaPassiva=s.rendaPassiva||0;custoUpgrade=s.custoUpgrade||100;veiculosComprados=s.veiculosComprados||[];casasCompradas=s.casasCompradas||[];}catch(e){console.warn('Save inválido');}}
+function salvar(){localStorage.setItem('save',JSON.stringify({dinheiro,renda,nivel,rendaPassiva,custoUpgrade,veiculosComprados,casasCompradas,marketPriceVal}));}
+function carregar(){let raw=localStorage.getItem('save');if(!raw) return;try{let s=JSON.parse(raw);dinheiro=s.dinheiro||0;renda=s.renda||1;nivel=s.nivel||1;rendaPassiva=s.rendaPassiva||0;custoUpgrade=s.custoUpgrade||100;veiculosComprados=s.veiculosComprados||[];casasCompradas=s.casasCompradas||[];marketPriceVal = s.marketPriceVal || initialPrice; priceHistory = Array(historyMax).fill(marketPriceVal);}catch(e){console.warn('Save inválido');}}
 function exportarSave(){salvar();const data=localStorage.getItem('save');const blob=new Blob([data],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='sim_save.json';a.click();URL.revokeObjectURL(url);}
-function importarSave(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const s=JSON.parse(r.result);dinheiro=s.dinheiro||0;renda=s.renda||1;nivel=s.nivel||1;rendaPassiva=s.rendaPassiva||0;custoUpgrade=s.custoUpgrade||100;veiculosComprados=s.veiculosComprados||[];casasCompradas=s.casasCompradas||[];salvar();atualizar();alert('Save importado com sucesso!');}catch(err){alert('Arquivo inválido');}};r.readAsText(f);e.target.value='';}
-function apagarSave(){if(confirm('Apagar save?')){localStorage.removeItem('save');dinheiro=0;renda=1;nivel=1;rendaPassiva=0;custoUpgrade=100;veiculosComprados=[];casasCompradas=[];atualizar();alert('Save apagado');}}
-carregar();atualizar();
+function importarSave(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const s=JSON.parse(r.result);dinheiro=s.dinheiro||0;renda=s.renda||1;nivel=s.nivel||1;rendaPassiva=s.rendaPassiva||0;custoUpgrade=s.custoUpgrade || 100;veiculosComprados=s.veiculosComprados||[];casasCompradas=s.casasCompradas||[];marketPriceVal = s.marketPriceVal || initialPrice; priceHistory = Array(historyMax).fill(marketPriceVal);salvar();atualizar();alert('Save importado com sucesso!');}catch(err){alert('Arquivo inválido');}};r.readAsText(f);e.target.value='';}
+function apagarSave(){if(confirm('Apagar save?')){localStorage.removeItem('save');dinheiro=0;renda=1;nivel=1;rendaPassiva=0;custoUpgrade=100;veiculosComprados=[];casasCompradas=[];marketPriceVal = initialPrice; priceHistory = Array(historyMax).fill(marketPriceVal);atualizar();alert('Save apagado');}}
+carregar();
+startMarket();
+atualizar();
 </script>
 </body>
 </html>
