@@ -324,17 +324,32 @@ function investirGrafico(dir){
 // atualiza info do trade em tempo real (chamar dentro do loop de animação ou ao mudar preço)
 function updateTradeInfo(){
   const info = document.getElementById('tradeInfo');
-  if(!isInvesting){ info.innerHTML = 'Nenhum trade aberto'; document.getElementById('closeTrade').classList.add('hidden'); return; }
+  if(!isInvesting){
+    info.innerHTML = 'Nenhum trade aberto';
+    document.getElementById('closeTrade').classList.add('hidden');
+    return;
+  }
+
   const dirTxt = tradeDir === 'up' ? 'Compra (UP)' : 'Venda (DOWN)';
   const percentChange = (marketPriceVal - tradeStartPrice) / tradeStartPrice;
   const effectivePercent = (tradeDir === 'up') ? percentChange : -percentChange;
-  const unrealized = Math.floor(tradeStake * effectivePercent);
+
+  const unrealized = Number((tradeStake * effectivePercent).toFixed(2));
   const sign = unrealized >= 0 ? '+' : '';
-  info.innerHTML = `Trade: ${dirTxt}<br>Abertura: ${tradeStartPrice.toFixed(2)} | Stake: ${tradeStake}<br> P&L Atual: <strong style="color:${unrealized>=0?"#4caf50":"#ff5252"}">${sign}${unrealized}</strong>`;
-  // Atualiza botão de fechar com P&L atual
+
+  info.innerHTML = `
+    Trade: ${dirTxt}<br>
+    Abertura: ${tradeStartPrice.toFixed(2)} | Stake: ${tradeStake}<br>
+    P&L Atual: <strong style="color:${unrealized>=0?"#4caf50":"#ff5252"}">
+      ${sign}${unrealized}
+    </strong>
+  `;
+
   const closeBtn = document.getElementById('closeTrade');
-  if(closeBtn){ closeBtn.textContent = `Fechar Trade — ${sign}${unrealized}`; closeBtn.style.background = unrealized >= 0 ? '#2e7d32' : '#b00020'; }
+  closeBtn.textContent = `Fechar Trade — ${sign}${unrealized}`;
+  closeBtn.style.background = unrealized >= 0 ? '#2e7d32' : '#b00020';
 }
+
 
 
 function pararTrade(){
@@ -440,6 +455,7 @@ atualizar();
 </script>
 </body>
 </html>
+
 
 
 
