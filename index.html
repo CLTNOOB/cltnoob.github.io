@@ -617,8 +617,6 @@ function initLogs(){
   if(current.length === 0){
     const seed = [
       {msg:'Novo sistema AFK — registra seus ganhos com renda passiva', ts: Date.now()},
-      {msg:'Melhorias no motor de mercado: tendências mais realistas', ts: Date.now() - 1000*60*60*24},
-      {msg:'Adicionado salvamento e import/export', ts: Date.now() - 1000*60*60*24*10}
     ];
     localStorage.setItem(key, JSON.stringify(seed));
   } else {
@@ -643,6 +641,7 @@ atualizar();
 </script>
 </body>
 </html>
+
 
 
 
