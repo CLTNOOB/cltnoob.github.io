@@ -159,7 +159,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 
 </main>
 <script>
-const MAX_UPGRADE_LEVEL = 50;
+const MAX_UPGRADE_LEVEL = 100;
 let dinheiro=0,renda=1,nivel=1,rendaPassiva=0,custoUpgrade=100;
 let veiculosComprados=[],casasCompradas=[],isInvesting=false;
 
@@ -407,9 +407,9 @@ function upgrade(){
   if (nivel >= MAX_UPGRADE_LEVEL) return alert('Você já atingiu o nível máximo');
   if(dinheiro>=custoUpgrade){
     dinheiro-=custoUpgrade;
-    renda++;
+    renda += 1 + Math.floor(nivel * 0.1);
     nivel++;
-    custoUpgrade=Math.floor(custoUpgrade*1.09);
+    custoUpgrade=Math.floor(custoUpgrade * 1.085);
     atualizar();
   } else alert('Dinheiro insuficiente');
 }
@@ -502,6 +502,7 @@ atualizar();
 </script>
 </body>
 </html>
+
 
 
 
