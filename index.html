@@ -55,6 +55,9 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .log-btn{background:#00c6ff;color:#002a33;border:none;padding:8px 10px;border-radius:8px;cursor:pointer}
 .log-btn.secondary{background:#fff;color:#002a33}
 
+.endgame.locked{opacity:0.6;filter:grayscale(50%)}
+.stat.endgame button{min-width:120px}
+
 </style>
 </head>
 <body>
@@ -87,6 +90,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <div class="stat">📈 Renda / clique<br><strong id="income">1</strong></div>
 <div class="stat">🏢 Nível<br><strong id="level">1</strong></div>
 <div class="stat">🏦 Renda Passiva<br><strong id="passive">0</strong></div>
+<div class="stat">🏅 Medalhas<br><strong id="medals">0</strong></div>
 </div>
 <button onclick="ganharDinheiro()">Ganhar dinheiro</button>
   <button id="upgradeBtn" onclick="upgrade()">Upgrade (custo <span id="upgradeCost">100</span>)</button>
@@ -94,6 +98,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <button onclick="abrir('graficos')">Gráficos</button>
 <button onclick="abrir('loja')">Loja</button>
 <button onclick="abrir('galeria')">Galeria</button>
+<button onclick="abrir('prestigios')">🏅 Prestígios</button>
 
 <!-- Sistema de salvamento manual / export / import -->
 <button onclick="salvar()">💾 Salvar (local)</button>
@@ -124,6 +129,13 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <div class="stat" style="margin-top:10px">Sítio<br>Custo: 80.000<br>Retorno: +800 / 30s<button onclick="comprarCasa('Sítio',80000,800)">Comprar</button></div>
 <div class="stat" style="margin-top:10px">Cobertura<br>Custo: 200.000<br>Retorno: +2200 / 30s<button onclick="comprarCasa('Cobertura',200000,2200)">Comprar</button></div>
 <div class="stat" style="margin-top:10px">Mansão<br>Custo: 800.000<br>Retorno: +10000 / 30s<button onclick="comprarCasa('Mansão',800000,10000)">Comprar</button></div>
+
+<div style="margin-top:15px"><h3>Casas End-Game (desbloqueadas por prestígios)</h3></div>
+<div class="stat endgame locked" data-required="5" style="margin-top:10px">🏢 Corporação Global<br>Custo: 10.000.000<br>Retorno: 100.000 - 200.000 / 30s<button disabled style="opacity:0.6" onclick="comprarCasa('Corporação Global',10000000,[100000,200000])">Bloqueado - Requer 5 medalhas</button></div>
+<div class="stat endgame locked" data-required="5" style="margin-top:10px">🏬 Império Multinacional<br>Custo: 25.000.000<br>Retorno: 250.000 - 500.000 / 30s<button disabled style="opacity:0.6" onclick="comprarCasa('Império Multinacional',25000000,[250000,500000])">Bloqueado - Requer 5 medalhas</button></div>
+<div class="stat endgame locked" data-required="5" style="margin-top:10px">🏛️ Conglomerado Planetário<br>Custo: 70.000.000<br>Retorno: 700.000 - 1.200.000 / 30s<button disabled style="opacity:0.6" onclick="comprarCasa('Conglomerado Planetário',70000000,[700000,1200000])">Bloqueado - Requer 5 medalhas</button></div>
+<div class="stat endgame locked" data-required="5" style="margin-top:10px">🌙 Colônia Lunar<br>Custo: 120.000.000<br>Retorno: 1.200.000 - 3.000.000 / 30s<button disabled style="opacity:0.6" onclick="comprarCasa('Colônia Lunar',120000000,[1200000,3000000])">Bloqueado - Requer 5 medalhas</button></div>
+<div class="stat endgame locked" data-required="5" style="margin-top:10px">🚀 Estação Espacial<br>Custo: 200.000.000<br>Retorno: 5.000.000 - 10.000.000 / 30s<button disabled style="opacity:0.6" onclick="comprarCasa('Estação Espacial',200000000,[5000000,10000000])">Bloqueado - Requer 5 medalhas</button></div> 
 
 <button onclick="voltar()">⬅ Voltar</button>
 </div>
@@ -161,6 +173,8 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <div class="stat" style="margin-top:10px">🚚 Caminhão<br>Preço: 250.000<button onclick="comprarVeiculo('Caminhão',250000)">Comprar</button></div>
 <div class="stat" style="margin-top:10px">⛵ Barco<br>Preço: 350.000<button onclick="comprarVeiculo('Barco',350000)">Comprar</button></div>
 <div class="stat" style="margin-top:10px">🔋 Tesla<br>Preço: 220.000<button onclick="comprarVeiculo('Tesla',220000)">Comprar</button></div>
+<div class="stat" style="margin-top:10px">💼 Carro Corporativo<br>Preço: 7.500.000<button onclick="comprarVeiculo('Carro Corporativo',7500000)">Comprar</button></div>
+<div class="stat" style="margin-top:10px">🚀 Nave Orbital<br>Preço: 150.000.000<button onclick="comprarVeiculo('Nave Orbital',150000000)">Comprar</button></div>
 <button onclick="voltar()">⬅ Voltar</button>
 </div>
 
@@ -170,6 +184,19 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <button onclick="mostrarGaleria('casas')">Casas</button>
 <div id="listaGaleria" style="margin-top:15px"></div>
 <button onclick="voltar()">⬅ Voltar</button>
+</div>
+
+<div class="card hidden" id="prestigios">
+  <h2>🏅 Prestígios</h2>
+  <div id="prestigeInfo">
+    <div>Medalhas: <strong id="prestigeCount">0</strong></div>
+    <div>Bônus atual: <strong id="prestigeBonus">0%</strong> (cada prestígio dá +2% à renda por clique e passiva)</div>
+    <div>Requisito para próximo prestígio: <strong id="prestigeReq">1.000.000</strong></div>
+    <button id="prestigeBtn" onclick="attemptPrestige()">Prestigiar (Reset)</button>
+    <div style="font-size:13px;color:#ccc;margin-top:8px">Ao prestigiar, você ganhará 1 medalha e seu progresso será resetado (dinheiro, nível, investimentos), mas manterá suas medalhas e bônus.</div>
+    <div id="medalRow" style="margin-top:10px"></div>
+  </div>
+  <button onclick="voltar()">⬅ Voltar</button>
 </div>
 
 <!-- Tutorial overlay (aparece apenas na primeira vez) -->
@@ -189,7 +216,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 </main>
 <script>
 const MAX_UPGRADE_LEVEL = 100;
-let dinheiro=0,renda=1,nivel=1,rendaPassiva=0,custoUpgrade=100;
+let dinheiro=0,renda=1,nivel=1,rendaPassiva=0,custoUpgrade=100,prestigios=0;
 let veiculosComprados=[],casasCompradas=[],isInvesting=false;
 
 // ==========================
@@ -218,10 +245,14 @@ let tradeStartPrice = 0, tradeStake = 0, tradeDir = null;
 
 // Atualiza valores visuais e salva (sem forçar saltos no gráfico)
 function atualizar(){
-  money.innerText = dinheiro;
-  income.innerText = renda;
+  money.innerText = dinheiro.toLocaleString();
+  const mult = getPrestigeMultiplier();
+  // renda por clique: mostra base e efetiva com bônus
+  income.innerHTML = `${renda} <small style="color:#ccc">(+${Math.round((mult-1)*100)}% → ${Math.floor(renda*mult)})</small>`;
   level.innerText = nivel;
-  passive.innerText = rendaPassiva;
+  passive.innerHTML = `${rendaPassiva.toLocaleString()} <small style="color:#ccc">(+${Math.round((mult-1)*100)}% → ${Math.floor(rendaPassiva*mult).toLocaleString()})</small>`;
+  renderPrestigios();
+  updateEndgameUnlocks();
   // Mostrar custo ou indicar que chegou ao nível máximo
   if (nivel >= MAX_UPGRADE_LEVEL){
     upgradeCost.innerText = 'MAX';
@@ -233,7 +264,7 @@ function atualizar(){
   marketPrice.innerText = marketPriceVal.toFixed(2);
   marketTrend.innerText = trend.type.charAt(0).toUpperCase() + trend.type.slice(1);
   salvar();
-}
+} 
 
 // ==========================
 // Motor de mercado (tendências e atualização periódica)
@@ -431,7 +462,8 @@ function finalizarTrade(){
   updateTradeInfo();
   atualizar();
 } 
-function ganharDinheiro(){dinheiro+=renda;atualizar();}
+function getPrestigeMultiplier(){ return 1 + (prestigios * 0.02); }
+function ganharDinheiro(){ dinheiro += Math.floor(renda * getPrestigeMultiplier()); atualizar(); }
 function upgrade(){
   if (nivel >= MAX_UPGRADE_LEVEL) return alert('Você já atingiu o nível máximo');
   if(dinheiro>=custoUpgrade){
@@ -442,8 +474,46 @@ function upgrade(){
     atualizar();
   } else alert('Dinheiro insuficiente');
 }
-function comprarInvestimento(c,r){if(dinheiro>=c){dinheiro-=c;rendaPassiva+=r;atualizar();}else alert('Dinheiro insuficiente');}
-function comprarCasa(name,c,r){if(dinheiro>=c){dinheiro-=c;rendaPassiva+=r;casasCompradas.push({nome:name,preco:c});atualizar();}else alert('Dinheiro insuficiente');}
+function comprarInvestimento(c,r){
+  if(dinheiro>=c){
+    dinheiro-=c;
+    let gain = r;
+    if(Array.isArray(r)){
+      const min = r[0], max = r[1];
+      gain = Math.floor(Math.random()*(max-min+1)+min);
+    }
+    rendaPassiva += gain;
+    alert(`Investimento adquirido. Renda passiva adicionada: ${gain} por 30s`);
+    atualizar();
+  } else alert('Dinheiro insuficiente');
+} 
+function isLockedHouse(name){
+  const els = document.querySelectorAll('.endgame');
+  for(const el of els){
+    if(el.innerHTML.includes(name)){
+      const req = Number(el.getAttribute('data-required')||0);
+      return prestigios < req ? req : 0;
+    }
+  }
+  return 0;
+}
+function comprarCasa(name,c,r){
+  const lockReq = isLockedHouse(name);
+  if(lockReq){ return alert(`Esta casa está bloqueada. Requer ${lockReq} medalhas.`); }
+  if(dinheiro>=c){
+    dinheiro-=c;
+    let gain = r;
+    if(Array.isArray(r)){
+      const min = r[0], max = r[1];
+      gain = Math.floor(Math.random()*(max-min+1)+min);
+    }
+    rendaPassiva += gain;
+    casasCompradas.push({nome:name,preco:c,retorno:gain});
+    addLog(`Casa comprada: ${name} — Retorno ${gain} por 30s`);
+    alert(`Você comprou ${name}. Renda passiva: ${gain} por 30s`);
+    atualizar();
+  } else alert('Dinheiro insuficiente');
+}  
 function comprarVeiculo(n,p){if(dinheiro>=p){dinheiro-=p;veiculosComprados.push({nome:n,preco:p});atualizar();}else alert('Dinheiro insuficiente');} 
 function abrir(id){painelPrincipal.classList.add('hidden');document.getElementById(id).classList.remove('hidden');}
 function voltar(){document.querySelectorAll('.card').forEach(c=>c.classList.add('hidden'));painelPrincipal.classList.remove('hidden');}
@@ -466,7 +536,7 @@ const OFFLINE_LIMIT = 24 * 60 * 60 * 1000; // 24h
 
 // renda passiva a cada 30s (online)
 setInterval(()=>{
-  dinheiro += rendaPassiva;
+  dinheiro += Math.floor(rendaPassiva * getPrestigeMultiplier());
   atualizar();
 }, 30000);
 
@@ -480,6 +550,7 @@ function salvar(){
     veiculosComprados,
     casasCompradas,
     marketPriceVal,
+    prestigios,
     lastSave: Date.now()
   }));
 }
@@ -499,6 +570,7 @@ function carregar(){
     veiculosComprados = s.veiculosComprados || [];
     casasCompradas = s.casasCompradas || [];
     marketPriceVal = s.marketPriceVal || initialPrice;
+    prestigios = s.prestigios || 0;
 
     priceHistory = Array(historyMax).fill(marketPriceVal);
 
@@ -507,7 +579,7 @@ function carregar(){
       const agora = Date.now();
       let tempoOffline = Math.min(agora - s.lastSave, OFFLINE_LIMIT);
       const ciclos = Math.floor(tempoOffline / 30000);
-      const ganhoOffline = ciclos * rendaPassiva;
+      const ganhoOffline = ciclos * Math.floor(rendaPassiva * (1 + ((s.prestigios || 0) * 0.02)));
       dinheiro += ganhoOffline;
     }
 
@@ -522,7 +594,7 @@ function carregar(){
 
 function exportarSave(){salvar();const data=localStorage.getItem('save');const blob=new Blob([data],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='sim_save.json';a.click();URL.revokeObjectURL(url);}
 function importarSave(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const s=JSON.parse(r.result);dinheiro=s.dinheiro||0;renda=s.renda||1;nivel=s.nivel||1;rendaPassiva=s.rendaPassiva||0;custoUpgrade=s.custoUpgrade || 100;veiculosComprados=s.veiculosComprados||[];casasCompradas=s.casasCompradas||[];marketPriceVal = s.marketPriceVal || initialPrice; priceHistory = Array(historyMax).fill(marketPriceVal);salvar();atualizar();alert('Save importado com sucesso!');}catch(err){alert('Arquivo inválido');}};r.readAsText(f);e.target.value='';}
-function apagarSave(){if(confirm('Apagar save?')){localStorage.removeItem('save');dinheiro=0;renda=1;nivel=1;rendaPassiva=0;custoUpgrade=100;veiculosComprados=[];casasCompradas=[];marketPriceVal = initialPrice; priceHistory = Array(historyMax).fill(marketPriceVal);atualizar();alert('Save apagado');}}
+function apagarSave(){if(confirm('Apagar save?')){localStorage.removeItem('save');dinheiro=0;renda=1;nivel=1;rendaPassiva=0;custoUpgrade=100;prestigios=0;veiculosComprados=[];casasCompradas=[];marketPriceVal = initialPrice; priceHistory = Array(historyMax).fill(marketPriceVal);atualizar();alert('Save apagado');} }
 
 /* Tutorial inicial (mostra apenas na primeira vez) */
 const tutorialSteps = [
@@ -611,18 +683,82 @@ function dismissAnnouncement(){
   localStorage.setItem('announcement_dismissed','1');
   markLogsRead();
 }
+function requiredForNextPrestige(){ return (prestigios + 1) * 1000000; }
+function attemptPrestige(){
+  const req = requiredForNextPrestige();
+  if(dinheiro < req) return alert(`Você precisa de ${req.toLocaleString()} para prestigiar.`);
+  if(!confirm(`Prestigiar resetará seu progresso e concederá 1 medalha. Deseja prosseguir? (Requisito: ${req.toLocaleString()})`)) return;
+  prestigios++;
+  addLog(`Prestígio alcançado! Medalhas: ${prestigios} — +${(prestigios*2)}% em renda por clique e passiva`);
+  if(prestigios === 5){ addLog('Você desbloqueou Casas End-Game! Agora pode comprá-las na aba Investimentos.'); }
+  // reset básico
+  dinheiro = 0; renda = 1; nivel = 1; rendaPassiva = 0; custoUpgrade = 100;
+  veiculosComprados = []; casasCompradas = [];
+  marketPriceVal = initialPrice; priceHistory = Array(historyMax).fill(marketPriceVal);
+  salvar();
+  renderPrestigios();
+  updateEndgameUnlocks();
+  atualizar();
+  alert('Prestígio realizado! Você recebeu 1 medalha.');
+}
+function renderPrestigios(){
+  const elCount = document.getElementById('prestigeCount');
+  const elBonus = document.getElementById('prestigeBonus');
+  const elReq = document.getElementById('prestigeReq');
+  const elMedals = document.getElementById('medals');
+  const medalRow = document.getElementById('medalRow');
+  if(elCount) elCount.innerText = prestigios;
+  if(elBonus) elBonus.innerText = (prestigios*2) + '%';
+  if(elReq) elReq.innerText = requiredForNextPrestige().toLocaleString();
+  if(elMedals) elMedals.innerText = prestigios;
+  if(medalRow){
+    if(prestigios === 0){ medalRow.innerHTML = '<span style="color:#ccc">Nenhuma medalha ainda</span>'; }
+    else{
+      let html = '';
+      for(let i=1;i<=prestigios;i++) html += `<span title="Medalha ${i}" style="font-size:20px;margin-right:6px">🏅</span>`;
+      medalRow.innerHTML = html;
+    }
+  }
+} 
+function updateEndgameUnlocks(){
+  document.querySelectorAll('.endgame').forEach(el=>{
+    const req = Number(el.getAttribute('data-required') || 0);
+    const btn = el.querySelector('button');
+    if(prestigios >= req){
+      el.classList.remove('locked');
+      if(btn) { btn.disabled = false; btn.style.opacity = 1; btn.textContent = 'Comprar'; }
+    } else {
+      el.classList.add('locked');
+      if(btn) { btn.disabled = true; btn.style.opacity = 0.5; btn.textContent = `Bloqueado - Requer ${req} medalhas`; }
+    }
+  });
+}
+
 function initLogs(){
   const key = 'update_logs';
   const current = JSON.parse(localStorage.getItem(key) || '[]');
   if(current.length === 0){
     const seed = [
       {msg:'Novo sistema AFK — registra seus ganhos com renda passiva', ts: Date.now()},
+      {msg:'Melhorias no motor de mercado: tendências mais realistas', ts: Date.now() - 1000*60*60*24},
+      {msg:'Adicionado salvamento e import/export', ts: Date.now() - 1000*60*60*24*10}
     ];
     localStorage.setItem(key, JSON.stringify(seed));
   } else {
     if(!current.some(l=>l.msg && l.msg.includes('Novo sistema AFK'))){
       addLog('Novo sistema AFK — registra seus ganhos com renda passiva');
     }
+  }
+  // adiciona logs de recurso de prestígio/casas/veículos se precisarem
+  const logs = JSON.parse(localStorage.getItem(key) || '[]');
+  if(!logs.some(l=>l.msg && l.msg.includes('Sistema de Prestígio'))){
+    addLog('Sistema de Prestígio adicionado — ganhe medalhas para bônus permanentes (+2% por prestígio).');
+  }
+  if(!logs.some(l=>l.msg && l.msg.includes('Casas End-Game'))){
+    addLog('Adicionadas 5 Casas End-Game desbloqueadas com 5 medalhas (Corporação Global até Estação Espacial).');
+  }
+  if(!logs.some(l=>l.msg && l.msg.includes('Novos veículos'))){
+    addLog('Novos veículos end-game adicionados à loja (Carro Corporativo, Nave Orbital).');
   }
   // oculta anúncio se já dispensado anteriormente
   const ann = localStorage.getItem('announcement_dismissed');
@@ -631,6 +767,8 @@ function initLogs(){
     if(el) el.classList.add('hidden');
   }
   renderLogs();
+  renderPrestigios();
+  updateEndgameUnlocks();
 }
 // inicializa logs (chama uma vez ao carregar)
 initLogs();
@@ -641,17 +779,6 @@ atualizar();
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
 
 
 
