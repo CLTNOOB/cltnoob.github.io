@@ -60,7 +60,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <div class="stat">🏦 Renda Passiva<br><strong id="passive">0</strong></div>
 </div>
 <button onclick="ganharDinheiro()">Ganhar dinheiro</button>
-<button onclick="upgrade()">Upgrade (custo <span id="upgradeCost">100</span>)</button>
+  <button id="upgradeBtn" onclick="upgrade()">Upgrade (custo <span id="upgradeCost">100</span>)</button>
 <button onclick="abrir('investimentos')">Investimentos</button>
 <button onclick="abrir('graficos')">Gráficos</button>
 <button onclick="abrir('loja')">Loja</button>
@@ -80,6 +80,22 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <div class="stat">🏠 Casa Alugada<br>Custo: 5.000<br>Retorno: +50 / 30s<button onclick="comprarInvestimento(5000,50)">Comprar</button></div>
 <div class="stat" style="margin-top:10px">🏪 Loja<br>Custo: 15.000<br>Retorno: +150 / 30s<button onclick="comprarInvestimento(15000,150)">Comprar</button></div>
 <div class="stat" style="margin-top:10px">🏢 Prédio<br>Custo: 50.000<br>Retorno: +500 / 30s<button onclick="comprarInvestimento(50000,500)">Comprar</button></div>
+
+<!-- Novos investimentos -->
+<div class="stat" style="margin-top:10px">📈 Fundo de Ações<br>Custo: 8.000<br>Retorno: +90 / 30s<button onclick="comprarInvestimento(8000,90)">Comprar</button></div>
+<div class="stat" style="margin-top:10px">💳 Títulos Públicos<br>Custo: 20.000<br>Retorno: +220 / 30s<button onclick="comprarInvestimento(20000,220)">Comprar</button></div>
+<div class="stat" style="margin-top:10px">🪙 Criptomoeda<br>Custo: 12.000<br>Retorno: +170 / 30s<button onclick="comprarInvestimento(12000,170)">Comprar</button></div>
+<div class="stat" style="margin-top:10px">🚀 Startup<br>Custo: 60.000<br>Retorno: +650 / 30s<button onclick="comprarInvestimento(60000,650)">Comprar</button></div>
+<div class="stat" style="margin-top:10px">🏘️ Fundo Imobiliário<br>Custo: 35.000<br>Retorno: +350 / 30s<button onclick="comprarInvestimento(35000,350)">Comprar</button></div>
+
+<!-- Novas casas (compram com função dedicada para registrar na galeria) -->
+<div style="margin-top:15px"><h3>🏠 Casas</h3></div>
+<div class="stat">Casa Simples<br>Custo: 10.000<br>Retorno: +120 / 30s<button onclick="comprarCasa('Casa Simples',10000,120)">Comprar</button></div>
+<div class="stat" style="margin-top:10px">Apartamento<br>Custo: 40.000<br>Retorno: +400 / 30s<button onclick="comprarCasa('Apartamento',40000,400)">Comprar</button></div>
+<div class="stat" style="margin-top:10px">Sítio<br>Custo: 80.000<br>Retorno: +800 / 30s<button onclick="comprarCasa('Sítio',80000,800)">Comprar</button></div>
+<div class="stat" style="margin-top:10px">Cobertura<br>Custo: 200.000<br>Retorno: +2200 / 30s<button onclick="comprarCasa('Cobertura',200000,2200)">Comprar</button></div>
+<div class="stat" style="margin-top:10px">Mansão<br>Custo: 800.000<br>Retorno: +10000 / 30s<button onclick="comprarCasa('Mansão',800000,10000)">Comprar</button></div>
+
 <button onclick="voltar()">⬅ Voltar</button>
 </div>
 
@@ -111,6 +127,11 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <h2>🛒 Loja</h2>
 <div class="stat">🚗 BMW<br>Preço: 120.000<button onclick="comprarVeiculo('BMW',120000)">Comprar</button></div>
 <div class="stat" style="margin-top:10px">✈️ Avião<br>Preço: 1.000.000<button onclick="comprarVeiculo('Avião',1000000)">Comprar</button></div>
+<div class="stat" style="margin-top:10px">🏎️ Ferrari<br>Preço: 500.000<button onclick="comprarVeiculo('Ferrari',500000)">Comprar</button></div>
+<div class="stat" style="margin-top:10px">🏍️ Moto<br>Preço: 30.000<button onclick="comprarVeiculo('Moto',30000)">Comprar</button></div>
+<div class="stat" style="margin-top:10px">🚚 Caminhão<br>Preço: 250.000<button onclick="comprarVeiculo('Caminhão',250000)">Comprar</button></div>
+<div class="stat" style="margin-top:10px">⛵ Barco<br>Preço: 350.000<button onclick="comprarVeiculo('Barco',350000)">Comprar</button></div>
+<div class="stat" style="margin-top:10px">🔋 Tesla<br>Preço: 220.000<button onclick="comprarVeiculo('Tesla',220000)">Comprar</button></div>
 <button onclick="voltar()">⬅ Voltar</button>
 </div>
 
@@ -138,6 +159,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 
 </main>
 <script>
+const MAX_UPGRADE_LEVEL = 50;
 let dinheiro=0,renda=1,nivel=1,rendaPassiva=0,custoUpgrade=100;
 let veiculosComprados=[],casasCompradas=[],isInvesting=false;
 
@@ -171,7 +193,14 @@ function atualizar(){
   income.innerText = renda;
   level.innerText = nivel;
   passive.innerText = rendaPassiva;
-  upgradeCost.innerText = custoUpgrade;
+  // Mostrar custo ou indicar que chegou ao nível máximo
+  if (nivel >= MAX_UPGRADE_LEVEL){
+    upgradeCost.innerText = 'MAX';
+    const btn = document.getElementById('upgradeBtn'); if (btn) btn.disabled = true;
+  } else {
+    upgradeCost.innerText = custoUpgrade;
+    const btn = document.getElementById('upgradeBtn'); if (btn) btn.disabled = false;
+  }
   marketPrice.innerText = marketPriceVal.toFixed(2);
   marketTrend.innerText = trend.type.charAt(0).toUpperCase() + trend.type.slice(1);
   salvar();
@@ -374,12 +403,30 @@ function finalizarTrade(){
   atualizar();
 } 
 function ganharDinheiro(){dinheiro+=renda;atualizar();}
-function upgrade(){if(dinheiro>=custoUpgrade){dinheiro-=custoUpgrade;renda++;nivel++;custoUpgrade=Math.floor(custoUpgrade*1.09);atualizar();}else alert('Dinheiro insuficiente');}
-function comprarInvestimento(c,r){if(dinheiro>=c){dinheiro-=c;rendaPassiva+=r;atualizar();}}
-function comprarVeiculo(n,p){if(dinheiro>=p){dinheiro-=p;veiculosComprados.push({nome:n,preco:p});atualizar();}}
+function upgrade(){
+  if (nivel >= MAX_UPGRADE_LEVEL) return alert('Você já atingiu o nível máximo');
+  if(dinheiro>=custoUpgrade){
+    dinheiro-=custoUpgrade;
+    renda++;
+    nivel++;
+    custoUpgrade=Math.floor(custoUpgrade*1.09);
+    atualizar();
+  } else alert('Dinheiro insuficiente');
+}
+function comprarInvestimento(c,r){if(dinheiro>=c){dinheiro-=c;rendaPassiva+=r;atualizar();}else alert('Dinheiro insuficiente');}
+function comprarCasa(name,c,r){if(dinheiro>=c){dinheiro-=c;rendaPassiva+=r;casasCompradas.push({nome:name,preco:c});atualizar();}else alert('Dinheiro insuficiente');}
+function comprarVeiculo(n,p){if(dinheiro>=p){dinheiro-=p;veiculosComprados.push({nome:n,preco:p});atualizar();}else alert('Dinheiro insuficiente');} 
 function abrir(id){painelPrincipal.classList.add('hidden');document.getElementById(id).classList.remove('hidden');}
 function voltar(){document.querySelectorAll('.card').forEach(c=>c.classList.add('hidden'));painelPrincipal.classList.remove('hidden');}
-function mostrarGaleria(t){let h='';if(t==='veiculos'){veiculosComprados.forEach(v=>h+=`🚗 ${v.nome} - ${v.preco}<br>`)}listaGaleria.innerHTML=h||'Nada comprado';}
+function mostrarGaleria(t){
+  let h='';
+  if(t==='veiculos'){
+    veiculosComprados.forEach(v=>h+=`🚗 ${v.nome} - ${v.preco}<br>`);
+  } else if(t==='casas'){
+    casasCompradas.forEach(c=>h+=`🏠 ${c.nome} - ${c.preco}<br>`);
+  }
+  listaGaleria.innerHTML = h || 'Nada comprado';
+}
 
 // (Trecho antigo de trade removido — trade agora usa o motor de mercado contínuo)
  
@@ -455,9 +502,6 @@ atualizar();
 </script>
 </body>
 </html>
-
-
-
 
 
 
