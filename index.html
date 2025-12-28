@@ -130,7 +130,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
     <div class="tutorialNav">
       <button class="tutorialBtn secondary" onclick="prevTutorial()">◀️ Anterior</button>
       <button class="tutorialBtn" onclick="nextTutorial()">Próximo ▶️</button>
-      <button class="tutorialBtn" onclick="closeTutorial(true)" id="tutorialSkip">Pular</button>
+      <button class="tutorialBtn" onclick="startGame()" id="tutorialSkip">Pular</button>
     </div>
   </div>
 </div>
@@ -413,7 +413,25 @@ function showTutorial(force=false){
 }
 function nextTutorial(){ if(tutorialIndex < tutorialSteps.length - 1){ tutorialIndex++; renderTutorial(); } else closeTutorial(true); }
 function prevTutorial(){ if(tutorialIndex>0){ tutorialIndex--; renderTutorial(); } }
-function closeTutorial(markSeen=false){ const tutorialOverlay = document.getElementById('tutorialOverlay'); if(tutorialOverlay) tutorialOverlay.classList.add('hidden'); if(markSeen) localStorage.setItem('tutorial_seen','1'); }
+function closeTutorial(markSeen=false){
+  const tutorialOverlay = document.getElementById('tutorialOverlay');
+  if(tutorialOverlay) tutorialOverlay.classList.add('hidden');
+  if(markSeen) localStorage.setItem('tutorial_seen','1');
+}
+
+function startGame(){
+  // Fecha o tutorial e marca como visto
+  closeTutorial(true);
+  // Dá um pequeno bônus inicial apenas uma vez
+  if(!localStorage.getItem('tutorial_bonus_given')){
+    dinheiro += 10;
+    atualizar();
+    localStorage.setItem('tutorial_bonus_given','1');
+  }
+  // Foca no botão de ganhar dinheiro para orientar o jogador
+  const btn = document.querySelector('button[onclick="ganharDinheiro()"]');
+  if(btn) btn.focus();
+}
 
 carregar();
 startMarket();
@@ -421,6 +439,8 @@ atualizar();
 </script>
 </body>
 </html>
+
+
 
 
 
