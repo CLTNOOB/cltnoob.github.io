@@ -23,6 +23,15 @@ button{padding:12px;border:none;border-radius:8px;cursor:pointer;background:#00c
 button:hover{background:#00a8dd}
 button:disabled{opacity:.55;cursor:not-allowed}
 .hidden{display:none} 
+/* --- Tutorial overlay styles --- */
+#tutorialOverlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;z-index:9999}
+#tutorialBox{background:linear-gradient(180deg,#1b2630,#12212a);padding:20px;border-radius:12px;width:90%;max-width:700px;color:#fff;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+#tutorialSteps{min-height:80px}
+.tutorialNav{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+.tutorialBtn{background:#00c6ff;color:#002a33;padding:8px 12px;border-radius:8px;border:none;cursor:pointer;font-weight:bold}
+.tutorialBtn.secondary{background:#fff;color:#002a33}
+#tutorialProgress{font-size:13px;color:#ccc;margin-bottom:8px}
+/* ------------------------------- */
 .arrows{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:10px}
 .arrow{width:50px;height:50px;border-radius:50%;font-size:20px}
 #graph{height:200px;background:#000;margin-top:15px;position:relative;overflow:hidden}
@@ -62,6 +71,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <input id="importFile" class="hidden" type="file" accept="application/json" onchange="importarSave(event)">
 <button onclick="document.getElementById('importFile').click()">⬆️ Importar Save</button>
 <button onclick="apagarSave()">🗑️ Apagar Save</button>
+<button onclick="showTutorial(true)">🎓 Tutorial</button>
 </div>
 
 <div class="card hidden" id="investimentos">
@@ -109,6 +119,20 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <button onclick="mostrarGaleria('casas')">Casas</button>
 <div id="listaGaleria" style="margin-top:15px"></div>
 <button onclick="voltar()">⬅ Voltar</button>
+</div>
+
+<!-- Tutorial overlay (aparece apenas na primeira vez) -->
+<div id="tutorialOverlay" class="hidden">
+  <div id="tutorialBox">
+    <h2>🎓 Tutorial inicial</h2>
+    <div id="tutorialProgress"></div>
+    <div id="tutorialSteps"></div>
+    <div class="tutorialNav">
+      <button class="tutorialBtn secondary" onclick="prevTutorial()">◀️ Anterior</button>
+      <button class="tutorialBtn" onclick="nextTutorial()">Próximo ▶️</button>
+      <button class="tutorialBtn" onclick="closeTutorial(true)" id="tutorialSkip">Pular</button>
+    </div>
+  </div>
 </div>
 
 </main>
@@ -350,13 +374,53 @@ function carregar(){let raw=localStorage.getItem('save');if(!raw) return;try{let
 function exportarSave(){salvar();const data=localStorage.getItem('save');const blob=new Blob([data],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='sim_save.json';a.click();URL.revokeObjectURL(url);}
 function importarSave(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const s=JSON.parse(r.result);dinheiro=s.dinheiro||0;renda=s.renda||1;nivel=s.nivel||1;rendaPassiva=s.rendaPassiva||0;custoUpgrade=s.custoUpgrade || 100;veiculosComprados=s.veiculosComprados||[];casasCompradas=s.casasCompradas||[];marketPriceVal = s.marketPriceVal || initialPrice; priceHistory = Array(historyMax).fill(marketPriceVal);salvar();atualizar();alert('Save importado com sucesso!');}catch(err){alert('Arquivo inválido');}};r.readAsText(f);e.target.value='';}
 function apagarSave(){if(confirm('Apagar save?')){localStorage.removeItem('save');dinheiro=0;renda=1;nivel=1;rendaPassiva=0;custoUpgrade=100;veiculosComprados=[];casasCompradas=[];marketPriceVal = initialPrice; priceHistory = Array(historyMax).fill(marketPriceVal);atualizar();alert('Save apagado');}}
+
+/* Tutorial inicial (mostra apenas na primeira vez) */
+const tutorialSteps = [
+  'Bem-vindo ao Simulador de Negócios! Clique em "Ganhar dinheiro" para obter sua primeira renda.',
+  'Use "Upgrade" para aumentar sua renda por clique e subir de nível.',
+  'Acesse "Investimentos" para comprar ativos que geram renda passiva automaticamente.',
+  'Na aba "Gráficos" você pode abrir trades de alto risco; use as setas para abrir e "Fechar Trade" para encerrar.',
+  'Abra "Loja" e "Galeria" para comprar itens e ver suas compras. Boa sorte!'
+];
+let tutorialIndex = 0;
+function renderTutorial(){
+  const tutorialOverlay = document.getElementById('tutorialOverlay');
+  const tutorialStepsEl = document.getElementById('tutorialSteps');
+  const tutorialProg = document.getElementById('tutorialProgress');
+  const prevBtn = document.querySelector('.tutorialBtn.secondary');
+  const nextBtn = document.querySelector('.tutorialBtn:not(.secondary)');
+  const skipBtn = document.getElementById('tutorialSkip');
+  if(!tutorialOverlay || !tutorialStepsEl || !tutorialProg) return;
+  tutorialStepsEl.innerText = tutorialSteps[tutorialIndex];
+  tutorialProg.innerText = `Passo ${tutorialIndex+1} de ${tutorialSteps.length}`;
+  prevBtn.disabled = tutorialIndex===0;
+  if(tutorialIndex === tutorialSteps.length - 1){
+    nextBtn.style.display = 'none';
+    skipBtn.textContent = 'Começar';
+  }else{
+    nextBtn.style.display = '';
+    skipBtn.textContent = 'Pular';
+  }
+}
+function showTutorial(force=false){
+  if(!force && localStorage.getItem('tutorial_seen')) return;
+  tutorialIndex = 0;
+  const tutorialOverlay = document.getElementById('tutorialOverlay');
+  if(!tutorialOverlay) return;
+  tutorialOverlay.classList.remove('hidden');
+  renderTutorial();
+}
+function nextTutorial(){ if(tutorialIndex < tutorialSteps.length - 1){ tutorialIndex++; renderTutorial(); } else closeTutorial(true); }
+function prevTutorial(){ if(tutorialIndex>0){ tutorialIndex--; renderTutorial(); } }
+function closeTutorial(markSeen=false){ const tutorialOverlay = document.getElementById('tutorialOverlay'); if(tutorialOverlay) tutorialOverlay.classList.add('hidden'); if(markSeen) localStorage.setItem('tutorial_seen','1'); }
+
 carregar();
 startMarket();
 atualizar();
 </script>
 </body>
 </html>
-
 
 
 
