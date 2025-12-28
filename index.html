@@ -43,6 +43,18 @@ button:disabled{opacity:.55;cursor:not-allowed}
 #tradeInfo{background:rgba(255,255,255,0.03);border-radius:8px}
 #closeTrade{width:100%}
 /* O canvas é desenhado por JS; a linha muda de cor conforme a direção atual */ 
+
+/* --- Announcement & Changelog styles --- */
+.announcement{background:linear-gradient(90deg,#ffb347,#ffcc33);color:#002a33;padding:10px;border-radius:8px;margin:12px auto;max-width:1200px;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.announcement .actions{margin-top:6px;display:flex;gap:8px;justify-content:center}
+.announcement button{background:rgba(0,0,0,0.08);border:none;padding:6px 10px;border-radius:6px;cursor:pointer}
+.changelog{max-width:1200px;margin:12px auto;padding:12px;background:rgba(255,255,255,0.04);border-radius:10px}
+.changelog-list{display:flex;flex-direction:column;gap:8px}
+.changelog-item{background:rgba(0,0,0,0.25);padding:10px;border-radius:8px}
+.changelog-new{display:inline-block;background:#00c853;color:#002a33;padding:4px 8px;border-radius:6px;font-weight:bold;margin-right:8px}
+.log-btn{background:#00c6ff;color:#002a33;border:none;padding:8px 10px;border-radius:8px;cursor:pointer}
+.log-btn.secondary{background:#fff;color:#002a33}
+
 </style>
 </head>
 <body>
@@ -50,7 +62,24 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <h1>💼 Simulador de Negócios</h1>
 <p>Sistemas avançados</p>
 </header>
+<!-- Announcement bar -->
+<div id="announcementBar" class="announcement">
+  <strong>Novo!</strong> Novo sistema AFK — registra seus ganhos com renda passiva
+  <div class="actions">
+    <button onclick="document.getElementById('changelog').scrollIntoView();">Ver Atualizações</button>
+    <button onclick="dismissAnnouncement()" class="log-btn secondary">Fechar</button>
+  </div>
+</div>
+
 <main>
+
+<div class="card" id="changelog">
+  <h2>📝 Atualizações</h2>
+  <div id="changelogList" class="changelog-list"></div>
+  <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end">
+    <button onclick="markLogsRead()" class="log-btn">Marcar como lidas</button>
+  </div>
+</div>
 
 <div class="card" id="painelPrincipal">
 <div class="stats">
@@ -553,12 +582,73 @@ function startGame(){
   if(btn) btn.focus();
 }
 
+// === Atualizações / Logs ===
+function addLog(msg){
+  const logs = JSON.parse(localStorage.getItem('update_logs')||'[]');
+  logs.unshift({msg:msg, ts: Date.now()});
+  localStorage.setItem('update_logs', JSON.stringify(logs));
+  console.log('Update log:', msg);
+  renderLogs();
+}
+function renderLogs(){
+  const el = document.getElementById('changelogList');
+  if(!el) return;
+  const logs = JSON.parse(localStorage.getItem('update_logs')||'[]');
+  const readAt = Number(localStorage.getItem('logs_read_at')||0);
+  el.innerHTML = logs.map(l=>{
+    const date = new Date(l.ts).toLocaleString();
+    const isNew = l.ts > readAt ? '<span class="changelog-new">Novo</span>' : '';
+    return `<div class="changelog-item">${isNew}<div style="font-size:13px;color:#ddd">${date}</div><div>${l.msg}</div></div>`;
+  }).join('');
+}
+function markLogsRead(){
+  localStorage.setItem('logs_read_at', Date.now());
+  renderLogs();
+}
+function dismissAnnouncement(){
+  const el = document.getElementById('announcementBar');
+  if(el) el.classList.add('hidden');
+  localStorage.setItem('announcement_dismissed','1');
+  markLogsRead();
+}
+function initLogs(){
+  const key = 'update_logs';
+  const current = JSON.parse(localStorage.getItem(key) || '[]');
+  if(current.length === 0){
+    const seed = [
+      {msg:'Novo sistema AFK — registra seus ganhos com renda passiva', ts: Date.now()},
+      {msg:'Melhorias no motor de mercado: tendências mais realistas', ts: Date.now() - 1000*60*60*24},
+      {msg:'Adicionado salvamento e import/export', ts: Date.now() - 1000*60*60*24*10}
+    ];
+    localStorage.setItem(key, JSON.stringify(seed));
+  } else {
+    if(!current.some(l=>l.msg && l.msg.includes('Novo sistema AFK'))){
+      addLog('Novo sistema AFK — registra seus ganhos com renda passiva');
+    }
+  }
+  // oculta anúncio se já dispensado anteriormente
+  const ann = localStorage.getItem('announcement_dismissed');
+  if(ann === '1'){
+    const el = document.getElementById('announcementBar');
+    if(el) el.classList.add('hidden');
+  }
+  renderLogs();
+}
+// inicializa logs (chama uma vez ao carregar)
+initLogs();
+
 carregar();
 startMarket();
 atualizar();
 </script>
 </body>
 </html>
+
+
+
+
+
+
 
 
 
