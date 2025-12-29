@@ -78,9 +78,9 @@ button:disabled{opacity:.55;cursor:not-allowed}
 
 <div class="card" id="changelog">
   <h2>📝 Atualizações</h2>
-  <div id="changelogList" class="changelog-list"></div>
+  <div style="color:#ccc">As atualizações foram movidas para a aba <strong>🔖 Atualizações já feitas</strong>. Clique para ver o histórico completo.</div>
   <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end">
-    <button onclick="markLogsRead()" class="log-btn">Marcar como lidas</button>
+    <button onclick="abrir('atualizacoesFeitas')" class="log-btn">Ver atualizações</button>
   </div>
 </div>
 
@@ -679,26 +679,15 @@ function addLog(msg){
   renderLogs();
 }
 function renderLogs(){
-  const el = document.getElementById('changelogList');
   const fullEl = document.getElementById('updateLogsList');
-  if(!el && !fullEl) return;
+  if(!fullEl) return;
   const logs = JSON.parse(localStorage.getItem('update_logs')||'[]');
   const readAt = Number(localStorage.getItem('logs_read_at')||0);
-  const latest = logs.slice(0,3);
-  if(el){
-    el.innerHTML = latest.map(l=>{
-      const date = new Date(l.ts).toLocaleString();
-      const isNew = l.ts > readAt ? '<span class="changelog-new">Novo</span>' : '';
-      return `<div class="changelog-item">${isNew}<div style="font-size:13px;color:#ddd">${date}</div><div>${l.msg}</div></div>`;
-    }).join('') || '<div class="changelog-item">Sem atualizações recentes</div>';
-  }
-  if(fullEl){
-    fullEl.innerHTML = logs.map(l=>{
-      const date = new Date(l.ts).toLocaleString();
-      const isNew = l.ts > readAt ? '<span class="changelog-new">Novo</span>' : '';
-      return `<div class="changelog-item">${isNew}<div style="font-size:13px;color:#ddd">${date}</div><div>${l.msg}</div></div>`;
-    }).join('') || '<div class="changelog-item">Nenhuma atualização registrada</div>';
-  }
+  fullEl.innerHTML = logs.map(l=>{
+    const date = new Date(l.ts).toLocaleString();
+    const isNew = l.ts > readAt ? '<span class="changelog-new">Novo</span>' : '';
+    return `<div class="changelog-item">${isNew}<div style="font-size:13px;color:#ddd">${date}</div><div>${l.msg}</div></div>`;
+  }).join('') || '<div class="changelog-item">Nenhuma atualização registrada</div>';
 }
 function markLogsRead(){
   localStorage.setItem('logs_read_at', Date.now());
@@ -801,4 +790,12 @@ atualizar();
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
 
