@@ -138,11 +138,11 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <div class="stat" style="margin-top:10px">Villa<br>Custo: 350.000<br>Retorno: +3800 / 30s<button onclick="comprarCasa('Villa',350000,3800)">Comprar</button></div>
 
 <div style="margin-top:15px"><h3>Casas End-Game (desbloqueadas por prestígios)</h3></div>
-<div class="stat endgame locked" data-required="5" style="margin-top:10px">🏢 Corporação Global<br>Custo: 10.000.000<br>Retorno: 100.000 - 200.000 / 30s<button disabled style="opacity:0.6" onclick="comprarCasa('Corporação Global',10000000,[100000,200000])">Bloqueado - Requer 5 medalhas</button></div>
-<div class="stat endgame locked" data-required="5" style="margin-top:10px">🏬 Império Multinacional<br>Custo: 25.000.000<br>Retorno: 250.000 - 500.000 / 30s<button disabled style="opacity:0.6" onclick="comprarCasa('Império Multinacional',25000000,[250000,500000])">Bloqueado - Requer 5 medalhas</button></div>
-<div class="stat endgame locked" data-required="5" style="margin-top:10px">🏛️ Conglomerado Planetário<br>Custo: 70.000.000<br>Retorno: 700.000 - 1.200.000 / 30s<button disabled style="opacity:0.6" onclick="comprarCasa('Conglomerado Planetário',70000000,[700000,1200000])">Bloqueado - Requer 5 medalhas</button></div>
-<div class="stat endgame locked" data-required="5" style="margin-top:10px">🌙 Colônia Lunar<br>Custo: 120.000.000<br>Retorno: 1.200.000 - 3.000.000 / 30s<button disabled style="opacity:0.6" onclick="comprarCasa('Colônia Lunar',120000000,[1200000,3000000])">Bloqueado - Requer 5 medalhas</button></div>
-<div class="stat endgame locked" data-required="5" style="margin-top:10px">🚀 Estação Espacial<br>Custo: 200.000.000<br>Retorno: 5.000.000 - 10.000.000 / 30s<button disabled style="opacity:0.6" onclick="comprarCasa('Estação Espacial',200000000,[5000000,10000000])">Bloqueado - Requer 5 medalhas</button></div> 
+<div class="stat" style="margin-top:10px">🏢 Corporação Global<br>Custo: 10.000.000<br>Retorno: 100.000 - 200.000 / 30s<button onclick="comprarCasa('Corporação Global',10000000,[100000,200000])">Comprar</button></div>
+<div class="stat" style="margin-top:10px">🏬 Império Multinacional<br>Custo: 25.000.000<br>Retorno: 250.000 - 500.000 / 30s<button onclick="comprarCasa('Império Multinacional',25000000,[250000,500000])">Comprar</button></div>
+<div class="stat" style="margin-top:10px">🏛️ Conglomerado Planetário<br>Custo: 70.000.000<br>Retorno: 700.000 - 1.200.000 / 30s<button onclick="comprarCasa('Conglomerado Planetário',70000000,[700000,1200000])">Comprar</button></div>
+<div class="stat" style="margin-top:10px">🌙 Colônia Lunar<br>Custo: 120.000.000<br>Retorno: 1.200.000 - 3.000.000 / 30s<button onclick="comprarCasa('Colônia Lunar',120000000,[1200000,3000000])">Comprar</button></div>
+<div class="stat" style="margin-top:10px">🚀 Estação Espacial<br>Custo: 200.000.000<br>Retorno: 5.000.000 - 10.000.000 / 30s<button onclick="comprarCasa('Estação Espacial',200000000,[5000000,10000000])">Comprar</button></div> 
 
 <button onclick="voltar()">⬅ Voltar</button>
 </div>
@@ -236,6 +236,15 @@ button:disabled{opacity:.55;cursor:not-allowed}
     <div style="font-size:13px;color:#ccc;margin-top:8px">Ao prestigiar, você ganhará 1 medalha e seu progresso será resetado (dinheiro, nível, investimentos), mas manterá suas medalhas e bônus.</div>
     <div id="medalRow" style="margin-top:10px"></div>
     <div id="prestigePreview" style="margin-top:10px;color:#ccc"></div>
+    <hr style="border:none;border-top:1px solid rgba(255,255,255,0.06);margin-top:12px" />
+    <h3 style="margin-top:12px">🏬 Loja de Prestígios</h3>
+    <div id="prestigeShop" style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+      <div class="changelog-item">🔁 Auto Clicker (0.5s) — Custo: <strong>2</strong> medalhas <button id="buyAutoClicker" onclick="buyPrestigeItem('autoClicker')" style="float:right">Comprar</button></div>
+      <div class="changelog-item">📈 +20% Renda Passiva (único) — Custo: <strong>2</strong> medalhas <button id="buyPassiveBoost" onclick="buyPrestigeItem('passiveBoost')" style="float:right">Comprar</button></div>
+      <div class="changelog-item">⏱️ Reduzir intervalo de renda passiva (5 compras disponíveis; -2s por compra) — Custo: <strong>1</strong> medalha cada <button id="buyPassiveSpeed" onclick="buyPrestigeItem('passiveSpeed')" style="float:right">Comprar</button> <span id="passiveSpeedCount" style="margin-left:8px;color:#ccc">(0/5)</span></div>
+      <div class="changelog-item">🏷️ Desconto Permanente de 10% (único) — Custo: <strong>5</strong> medalhas <button id="buyDiscount" onclick="buyPrestigeItem('discount')" style="float:right">Comprar</button></div>
+      <div class="changelog-item">✨ Multiplicador Global +10% (Clickers & Investimentos) — Custo: <strong>3</strong> medalhas <button id="buyGlobalMul" onclick="buyPrestigeItem('globalMultiplier')" style="float:right">Comprar</button></div>
+    </div>
   </div>
   <button onclick="voltar()">⬅ Voltar</button>
 </div>
@@ -259,6 +268,9 @@ button:disabled{opacity:.55;cursor:not-allowed}
 const MAX_UPGRADE_LEVEL = 100;
 let dinheiro=0,renda=1,nivel=1,rendaPassiva=0,custoUpgrade=100,prestigios=0,emprestimo=0,emprestimoTaxa=0.02,emprestimoTakenAt=0;
 let veiculosComprados=[],casasCompradas=[],isInvesting=false;
+// Loja de Prestígios e timers
+let prestigeShop = { autoClicker:false, passiveBoost:false, passiveSpeedCount:0, discount:false, globalMultiplier:false };
+let passiveIntervalMs = 30000; let passiveIntervalId = null; let autoClickerIntervalId = null;
 
 // ==========================
 // Parâmetros de mercado (fácil de alterar)
@@ -518,8 +530,18 @@ function finalizarTrade(){
   updateTradeInfo();
   atualizar();
 } 
-function getPrestigeMultiplier(){ return 1 + (prestigios * 0.02); }
-function ganharDinheiro(){ dinheiro += Math.floor(renda * getPrestigeMultiplier()); atualizar(); }
+function getPrestigeMultiplier(){
+  // agora cada prestígio dá +5% e é limitado a +50% (0.5)
+  return 1 + Math.min(prestigios * 0.05, 0.5);
+}
+function ganharDinheiro(){
+  // maior escala para clicks: aumenta com o nível e com multiplicadores da loja de prestígios
+  const levelMul = 1 + Math.floor(nivel / 2); // escala forte com nível
+  const globalMul = prestigeShop.globalMultiplier ? 1.10 : 1;
+  const amount = Math.floor(renda * levelMul * getPrestigeMultiplier() * globalMul);
+  dinheiro += amount;
+  atualizar();
+}
 function upgrade(){
   if (nivel >= MAX_UPGRADE_LEVEL) return alert('Você já atingiu o nível máximo');
   if(dinheiro>=custoUpgrade){
@@ -535,16 +557,20 @@ function upgrade(){
     atualizar();
   } else alert('Dinheiro insuficiente');
 }
+function applyDiscount(price){ return prestigeShop.discount ? Math.ceil(price * 0.9) : price; }
+
 function comprarInvestimento(c,r){
-  if(dinheiro>=c){
-    dinheiro-=c;
+  const price = applyDiscount(c);
+  if(dinheiro>=price){
+    dinheiro-=price;
     let gain = r;
     if(Array.isArray(r)){
       const min = r[0], max = r[1];
       gain = Math.floor(Math.random()*(max-min+1)+min);
     }
     rendaPassiva += gain;
-    alert(`Investimento adquirido. Renda passiva adicionada: ${gain} por 30s`);
+    alert(`Investimento adquirido. Renda passiva adicionada: ${gain} por ${passiveIntervalMs/1000}s`);
+    addLog(`Investimento comprado por ${price.toLocaleString()} — Retorno ${gain}`);
     atualizar();
   } else alert('Dinheiro insuficiente');
 } 
@@ -609,21 +635,22 @@ function isLockedHouse(name){
 function comprarCasa(name,c,r){
   const lockReq = isLockedHouse(name);
   if(lockReq){ return alert(`Esta casa está bloqueada. Requer ${lockReq} medalhas.`); }
-  if(dinheiro>=c){
-    dinheiro-=c;
+  const price = applyDiscount(c);
+  if(dinheiro>=price){
+    dinheiro-=price;
     let gain = r;
     if(Array.isArray(r)){
       const min = r[0], max = r[1];
       gain = Math.floor(Math.random()*(max-min+1)+min);
     }
     rendaPassiva += gain;
-    casasCompradas.push({nome:name,preco:c,retorno:gain});
-    addLog(`Casa comprada: ${name} — Retorno ${gain} por 30s`);
-    alert(`Você comprou ${name}. Renda passiva: ${gain} por 30s`);
+    casasCompradas.push({nome:name,preco:price,retorno:gain});
+    addLog(`Casa comprada: ${name} — Retorno ${gain} por ${passiveIntervalMs/1000}s`);
+    alert(`Você comprou ${name}. Renda passiva: ${gain} por ${passiveIntervalMs/1000}s`);
     atualizar();
   } else alert('Dinheiro insuficiente');
-}  
-function comprarVeiculo(n,p){if(dinheiro>=p){dinheiro-=p;veiculosComprados.push({nome:n,preco:p});atualizar();}else alert('Dinheiro insuficiente');} 
+}
+function comprarVeiculo(n,p){ const price = applyDiscount(p); if(dinheiro>=price){dinheiro-=price;veiculosComprados.push({nome:n,preco:price});atualizar();}else alert('Dinheiro insuficiente'); } 
 function abrir(id){painelPrincipal.classList.add('hidden');document.getElementById(id).classList.remove('hidden');}
 function voltar(){document.querySelectorAll('.card').forEach(c=>c.classList.add('hidden'));painelPrincipal.classList.remove('hidden');}
 function mostrarGaleria(t){
@@ -643,16 +670,24 @@ function mostrarGaleria(t){
 
 const OFFLINE_LIMIT = 24 * 60 * 60 * 1000; // 24h
 
-// renda passiva a cada 30s (online)
-setInterval(()=>{
-  dinheiro += Math.floor(rendaPassiva * getPrestigeMultiplier());
-  // aplicar juros do empréstimo se houver dívida
-  if(emprestimo > 0){
-    // juros compostos por ciclo
-    emprestimo = Math.ceil(emprestimo * (1 + emprestimoTaxa));
-  }
-  atualizar();
-}, 30000);
+// renda passiva e juros (usar intervalo variável)
+function setupPassiveInterval(){
+  if(passiveIntervalId) clearInterval(passiveIntervalId);
+  passiveIntervalId = setInterval(()=>{
+    // aplicar renda passiva com multiplicadores (prestígio e compra global)
+    const globalMul = prestigeShop.globalMultiplier ? 1.10 : 1;
+    const passiveBoostMul = prestigeShop.passiveBoost ? 1.20 : 1;
+    const ganho = Math.floor(rendaPassiva * getPrestigeMultiplier() * passiveBoostMul * globalMul);
+    dinheiro += ganho;
+    // aplicar juros do empréstimo apenas enquanto o jogo está ativo
+    if(emprestimo > 0){
+      emprestimo = Math.ceil(emprestimo * (1 + emprestimoTaxa));
+    }
+    atualizar();
+  }, passiveIntervalMs);
+}
+// iniciar intervalo padrão
+setupPassiveInterval();
 
 function salvar(){
   localStorage.setItem('save', JSON.stringify({
@@ -668,6 +703,8 @@ function salvar(){
     emprestimo,
     emprestimoTaxa,
     emprestimoTakenAt,
+    prestigeShop,
+    passiveIntervalMs,
     lastSave: Date.now()
   }));
 }
@@ -692,10 +729,15 @@ function carregar(){
     emprestimo = s.emprestimo || 0;
     emprestimoTaxa = typeof s.emprestimoTaxa === 'number' ? s.emprestimoTaxa : emprestimoTaxa;
     emprestimoTakenAt = s.emprestimoTakenAt || 0;
+    // carregar loja de prestígios e intervalos
+    prestigeShop = s.prestigeShop || prestigeShop;
+    passiveIntervalMs = s.passiveIntervalMs || passiveIntervalMs;
     // IMPORTANTE: não aplicar juros do empréstimo enquanto o jogador esteve offline (juros só são computados enquanto o jogo está ativo)
 
 
     priceHistory = Array(historyMax).fill(marketPriceVal);
+    setupPassiveInterval();
+    if(prestigeShop.autoClicker) startAutoClicker();
 
     /* ===== GANHOS OFFLINE ===== */
     if(s.lastSave){
@@ -812,9 +854,15 @@ function attemptPrestige(){
   if(dinheiro < req) return alert(`Você precisa de ${req.toLocaleString()} para prestigiar.`);
   if(!confirm(`Prestigiar resetará seu progresso e concederá 1 medalha. Deseja prosseguir? (Requisito: ${req.toLocaleString()})`)) return;
   prestigios++;
-  addLog(`Prestígio alcançado! Medalhas: ${prestigios} — +${(prestigios*2)}% em renda por clique e passiva`);
-  if(prestigios === 5){ addLog('Você desbloqueou Casas End-Game! Agora pode comprá-las na aba Investimentos.'); }
-  // reset básico
+  // atualizar log com novo formato de bônus (5% por prestígio)
+  addLog(`Prestígio alcançado! Medalhas: ${prestigios} — +${(prestigios*5)}% em renda por clique e passiva`);
+  // remover dívida ao prestigiar
+  if(emprestimo && emprestimo > 0){
+    emprestimo = 0; emprestimoTakenAt = 0; emprestimoTaxa = 0.02;
+    addLog('Dívida de empréstimo anulada ao prestigiar.');
+  }
+
+  // reset básico (mantém medalhas e compras na loja de prestígios)
   dinheiro = 0; renda = 1; nivel = 1; rendaPassiva = 0; custoUpgrade = 100;
   veiculosComprados = []; casasCompradas = [];
   marketPriceVal = initialPrice; priceHistory = Array(historyMax).fill(marketPriceVal);
@@ -833,6 +881,21 @@ function renderPrestigios(){
   const previewEl = document.getElementById('prestigePreview');
   const btn = document.getElementById('prestigeBtn');
   const req = requiredForNextPrestige();
+  // atualizar a UI da loja de prestígios
+  const buyAutoBtn = document.getElementById('buyAutoClicker');
+  const buyPassiveBtn = document.getElementById('buyPassiveBoost');
+  const buySpeedBtn = document.getElementById('buyPassiveSpeed');
+  const buyDiscountBtn = document.getElementById('buyDiscount');
+  const buyGlobalBtn = document.getElementById('buyGlobalMul');
+  const speedCountEl = document.getElementById('passiveSpeedCount');
+
+  if(buyAutoBtn) { buyAutoBtn.disabled = prestigeShop.autoClicker || prestigios < 2; buyAutoBtn.textContent = prestigeShop.autoClicker ? 'Comprado' : 'Comprar'; }
+  if(buyPassiveBtn) { buyPassiveBtn.disabled = prestigeShop.passiveBoost || prestigios < 2; buyPassiveBtn.textContent = prestigeShop.passiveBoost ? 'Comprado' : 'Comprar'; }
+  if(buySpeedBtn) { buySpeedBtn.disabled = prestigeShop.passiveSpeedCount >= 5 || prestigios < 1; buySpeedBtn.textContent = (prestigeShop.passiveSpeedCount >=5) ? 'Máximo' :'Comprar'; }
+  if(speedCountEl) speedCountEl.innerText = `(${prestigeShop.passiveSpeedCount}/5)`;
+  if(buyDiscountBtn) { buyDiscountBtn.disabled = prestigeShop.discount || prestigios < 5; buyDiscountBtn.textContent = prestigeShop.discount ? 'Comprado' : 'Comprar'; }
+  if(buyGlobalBtn) { buyGlobalBtn.disabled = prestigeShop.globalMultiplier || prestigios < 3; buyGlobalBtn.textContent = prestigeShop.globalMultiplier ? 'Comprado' : 'Comprar'; }
+
 
   if(elCount) elCount.innerText = prestigios;
   if(elBonus) elBonus.innerText = (prestigios*2) + '%';
@@ -867,7 +930,46 @@ function renderPrestigios(){
     btn.textContent = `Prestigiar (Requisito: ${req.toLocaleString()})`;
     btn.disabled = dinheiro < req;
   }
-} 
+  // mostrar bônus atual e limitar no preview
+  if(elBonus) elBonus.innerText = Math.round((getPrestigeMultiplier()-1)*100) + '% (máx 50%)';
+  // salvar alterações de shop/status
+  salvar();
+}
+
+function buyPrestigeItem(item){
+  if(item === 'autoClicker'){
+    if(prestigios < 2) return alert('Medalhas insuficientes');
+    if(prestigeShop.autoClicker) return alert('Já comprado');
+    prestigios -= 2; prestigeShop.autoClicker = true; addLog('Auto Clicker comprado — cliques automáticos ativados (0.5s)');
+    startAutoClicker();
+  } else if(item === 'passiveBoost'){
+    if(prestigios < 2) return alert('Medalhas insuficientes');
+    if(prestigeShop.passiveBoost) return alert('Já comprado');
+    prestigios -= 2; prestigeShop.passiveBoost = true; addLog('+20% de renda passiva comprado');
+  } else if(item === 'passiveSpeed'){
+    if(prestigios < 1) return alert('Medalhas insuficientes');
+    if(prestigeShop.passiveSpeedCount >= 5) return alert('Já atingiu o máximo de reduções de intervalo');
+    prestigios -= 1; prestigeShop.passiveSpeedCount += 1; passiveIntervalMs = Math.max(20000, passiveIntervalMs - 2000); setupPassiveInterval(); addLog('Redução de intervalo de renda passiva adquirida (-2s)');
+  } else if(item === 'discount'){
+    if(prestigios < 5) return alert('Medalhas insuficientes');
+    if(prestigeShop.discount) return alert('Já comprado');
+    prestigios -= 5; prestigeShop.discount = true; addLog('Desconto permanente de 10% adquirido');
+  } else if(item === 'globalMultiplier'){
+    if(prestigios < 3) return alert('Medalhas insuficientes');
+    if(prestigeShop.globalMultiplier) return alert('Já comprado');
+    prestigios -= 3; prestigeShop.globalMultiplier = true; addLog('Multiplicador global +10% para clickers e investimentos adquirido');
+  }
+  renderPrestigios();
+  atualizar();
+}
+
+function startAutoClicker(){
+  if(autoClickerIntervalId) return;
+  autoClickerIntervalId = setInterval(()=>{
+    if(prestigeShop.autoClicker) ganharDinheiro(); else stopAutoClicker();
+  }, 500);
+}
+function stopAutoClicker(){ if(autoClickerIntervalId){ clearInterval(autoClickerIntervalId); autoClickerIntervalId = null; } }
 function updateEndgameUnlocks(){
   document.querySelectorAll('.endgame').forEach(el=>{
     const req = Number(el.getAttribute('data-required') || 0);
