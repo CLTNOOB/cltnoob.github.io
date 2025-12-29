@@ -69,7 +69,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <div id="announcementBar" class="announcement">
   <strong>Novo!</strong> Novo sistema AFK — registra seus ganhos com renda passiva
   <div class="actions">
-    <button onclick="document.getElementById('changelog').scrollIntoView();">Ver Atualizações</button>
+    <button onclick="abrir('atualizacoesFeitas')">Ver Atualizações</button>
     <button onclick="dismissAnnouncement()" class="log-btn secondary">Fechar</button>
   </div>
 </div>
@@ -98,10 +98,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <button onclick="abrir('graficos')">Gráficos</button>
 <button onclick="abrir('loja')">Loja</button>
 <button onclick="abrir('galeria')">Galeria</button>
-<button onclick="abrir('prestigios')">🏅 Prestígios</button>
-
-<!-- Sistema de salvamento manual / export / import -->
-<button onclick="salvar()">💾 Salvar (local)</button>
+<button onclick="abrir('atualizacoesFeitas')">📜 Atualizações</button>
 <button onclick="exportarSave()">⬇️ Exportar Save</button>
 <input id="importFile" class="hidden" type="file" accept="application/json" onchange="importarSave(event)">
 <button onclick="document.getElementById('importFile').click()">⬆️ Importar Save</button>
@@ -129,6 +126,13 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <div class="stat" style="margin-top:10px">Sítio<br>Custo: 80.000<br>Retorno: +800 / 30s<button onclick="comprarCasa('Sítio',80000,800)">Comprar</button></div>
 <div class="stat" style="margin-top:10px">Cobertura<br>Custo: 200.000<br>Retorno: +2200 / 30s<button onclick="comprarCasa('Cobertura',200000,2200)">Comprar</button></div>
 <div class="stat" style="margin-top:10px">Mansão<br>Custo: 800.000<br>Retorno: +10000 / 30s<button onclick="comprarCasa('Mansão',800000,10000)">Comprar</button></div>
+
+<!-- Novas casas (não end-game) -->
+<div class="stat" style="margin-top:10px">Studio<br>Custo: 5.000<br>Retorno: +60 / 30s<button onclick="comprarCasa('Studio',5000,60)">Comprar</button></div>
+<div class="stat" style="margin-top:10px">Casa Moderna<br>Custo: 25.000<br>Retorno: +250 / 30s<button onclick="comprarCasa('Casa Moderna',25000,250)">Comprar</button></div>
+<div class="stat" style="margin-top:10px">Townhouse<br>Custo: 60.000<br>Retorno: +600 / 30s<button onclick="comprarCasa('Townhouse',60000,600)">Comprar</button></div>
+<div class="stat" style="margin-top:10px">Fazenda<br>Custo: 120.000<br>Retorno: +1300 / 30s<button onclick="comprarCasa('Fazenda',120000,1300)">Comprar</button></div>
+<div class="stat" style="margin-top:10px">Villa<br>Custo: 350.000<br>Retorno: +3800 / 30s<button onclick="comprarCasa('Villa',350000,3800)">Comprar</button></div>
 
 <div style="margin-top:15px"><h3>Casas End-Game (desbloqueadas por prestígios)</h3></div>
 <div class="stat endgame locked" data-required="5" style="margin-top:10px">🏢 Corporação Global<br>Custo: 10.000.000<br>Retorno: 100.000 - 200.000 / 30s<button disabled style="opacity:0.6" onclick="comprarCasa('Corporação Global',10000000,[100000,200000])">Bloqueado - Requer 5 medalhas</button></div>
@@ -173,8 +177,12 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <div class="stat" style="margin-top:10px">🚚 Caminhão<br>Preço: 250.000<button onclick="comprarVeiculo('Caminhão',250000)">Comprar</button></div>
 <div class="stat" style="margin-top:10px">⛵ Barco<br>Preço: 350.000<button onclick="comprarVeiculo('Barco',350000)">Comprar</button></div>
 <div class="stat" style="margin-top:10px">🔋 Tesla<br>Preço: 220.000<button onclick="comprarVeiculo('Tesla',220000)">Comprar</button></div>
-<div class="stat" style="margin-top:10px">💼 Carro Corporativo<br>Preço: 7.500.000<button onclick="comprarVeiculo('Carro Corporativo',7500000)">Comprar</button></div>
-<div class="stat" style="margin-top:10px">🚀 Nave Orbital<br>Preço: 150.000.000<button onclick="comprarVeiculo('Nave Orbital',150000000)">Comprar</button></div>
+<!-- Novos carros adicionados -->
+<div class="stat" style="margin-top:10px">🚘 XE<br>Preço: 90.000<button onclick="comprarVeiculo('XE',90000)">Comprar</button></div>
+<div class="stat" style="margin-top:10px">🚘 BMW 320i<br>Preço: 150.000<button onclick="comprarVeiculo('BMW 320i',150000)">Comprar</button></div>
+<div class="stat" style="margin-top:10px">🚘 Audi A3<br>Preço: 110.000<button onclick="comprarVeiculo('Audi A3',110000)">Comprar</button></div>
+<div class="stat" style="margin-top:10px">🚘 Toyota Corolla<br>Preço: 80.000<button onclick="comprarVeiculo('Toyota Corolla',80000)">Comprar</button></div>
+<div class="stat" style="margin-top:10px">🚘 Honda Civic<br>Preço: 95.000<button onclick="comprarVeiculo('Honda Civic',95000)">Comprar</button></div>
 <button onclick="voltar()">⬅ Voltar</button>
 </div>
 
@@ -184,6 +192,15 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <button onclick="mostrarGaleria('casas')">Casas</button>
 <div id="listaGaleria" style="margin-top:15px"></div>
 <button onclick="voltar()">⬅ Voltar</button>
+</div>
+
+<div class="card hidden" id="atualizacoesFeitas">
+  <h2>🔖 Atualizações já feitas</h2>
+  <div id="updateLogsList" class="changelog-list"></div>
+  <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end">
+    <button onclick="markLogsRead()" class="log-btn">Marcar como lidas</button>
+    <button onclick="voltar()" class="log-btn secondary">Fechar</button>
+  </div>
 </div>
 
 <div class="card hidden" id="prestigios">
@@ -659,19 +676,29 @@ function addLog(msg){
   const logs = JSON.parse(localStorage.getItem('update_logs')||'[]');
   logs.unshift({msg:msg, ts: Date.now()});
   localStorage.setItem('update_logs', JSON.stringify(logs));
-  console.log('Update log:', msg);
   renderLogs();
 }
 function renderLogs(){
   const el = document.getElementById('changelogList');
-  if(!el) return;
+  const fullEl = document.getElementById('updateLogsList');
+  if(!el && !fullEl) return;
   const logs = JSON.parse(localStorage.getItem('update_logs')||'[]');
   const readAt = Number(localStorage.getItem('logs_read_at')||0);
-  el.innerHTML = logs.map(l=>{
-    const date = new Date(l.ts).toLocaleString();
-    const isNew = l.ts > readAt ? '<span class="changelog-new">Novo</span>' : '';
-    return `<div class="changelog-item">${isNew}<div style="font-size:13px;color:#ddd">${date}</div><div>${l.msg}</div></div>`;
-  }).join('');
+  const latest = logs.slice(0,3);
+  if(el){
+    el.innerHTML = latest.map(l=>{
+      const date = new Date(l.ts).toLocaleString();
+      const isNew = l.ts > readAt ? '<span class="changelog-new">Novo</span>' : '';
+      return `<div class="changelog-item">${isNew}<div style="font-size:13px;color:#ddd">${date}</div><div>${l.msg}</div></div>`;
+    }).join('') || '<div class="changelog-item">Sem atualizações recentes</div>';
+  }
+  if(fullEl){
+    fullEl.innerHTML = logs.map(l=>{
+      const date = new Date(l.ts).toLocaleString();
+      const isNew = l.ts > readAt ? '<span class="changelog-new">Novo</span>' : '';
+      return `<div class="changelog-item">${isNew}<div style="font-size:13px;color:#ddd">${date}</div><div>${l.msg}</div></div>`;
+    }).join('') || '<div class="changelog-item">Nenhuma atualização registrada</div>';
+  }
 }
 function markLogsRead(){
   localStorage.setItem('logs_read_at', Date.now());
@@ -739,26 +766,21 @@ function initLogs(){
   const current = JSON.parse(localStorage.getItem(key) || '[]');
   if(current.length === 0){
     const seed = [
-      {msg:'Novo sistema AFK — registra seus ganhos com renda passiva', ts: Date.now()},
-      {msg:'Melhorias no motor de mercado: tendências mais realistas', ts: Date.now() - 1000*60*60*24},
-      {msg:'Adicionado salvamento e import/export', ts: Date.now() - 1000*60*60*24*10}
+      {msg:'Adicionados 5 novos veículos: XE, BMW 320i, Audi A3, Toyota Corolla, Honda Civic', ts: Date.now()},
+      {msg:'Removida Nave Orbital da loja; veículos ajustados para categoria normal', ts: Date.now() - 1000*60*60},
+      {msg:'Adicionadas 5 novas casas (Studio, Casa Moderna, Townhouse, Fazenda, Villa)', ts: Date.now() - 1000*60*60*3},
+      {msg:'Logs reiniciados e atualizados com novas mensagens', ts: Date.now() - 1000*60*60*6}
     ];
     localStorage.setItem(key, JSON.stringify(seed));
   } else {
-    if(!current.some(l=>l.msg && l.msg.includes('Novo sistema AFK'))){
-      addLog('Novo sistema AFK — registra seus ganhos com renda passiva');
+    // garantir mensagens principais sem duplicar
+    if(!current.some(l=>l.msg && l.msg.includes('Adicionados 5 novos veículos'))){
+      current.unshift({msg:'Adicionados 5 novos veículos: XE, BMW 320i, Audi A3, Toyota Corolla, Honda Civic', ts: Date.now()});
     }
-  }
-  // adiciona logs de recurso de prestígio/casas/veículos se precisarem
-  const logs = JSON.parse(localStorage.getItem(key) || '[]');
-  if(!logs.some(l=>l.msg && l.msg.includes('Sistema de Prestígio'))){
-    addLog('Sistema de Prestígio adicionado — ganhe medalhas para bônus permanentes (+2% por prestígio).');
-  }
-  if(!logs.some(l=>l.msg && l.msg.includes('Casas End-Game'))){
-    addLog('Adicionadas 5 Casas End-Game desbloqueadas com 5 medalhas (Corporação Global até Estação Espacial).');
-  }
-  if(!logs.some(l=>l.msg && l.msg.includes('Novos veículos'))){
-    addLog('Novos veículos end-game adicionados à loja (Carro Corporativo, Nave Orbital).');
+    if(!current.some(l=>l.msg && l.msg.includes('Adicionadas 5 novas casas'))){
+      current.unshift({msg:'Adicionadas 5 novas casas (Studio, Casa Moderna, Townhouse, Fazenda, Villa)', ts: Date.now() - 1000*60*60});
+    }
+    localStorage.setItem(key, JSON.stringify(current));
   }
   // oculta anúncio se já dispensado anteriormente
   const ann = localStorage.getItem('announcement_dismissed');
@@ -779,6 +801,4 @@ atualizar();
 </script>
 </body>
 </html>
-
-
 
