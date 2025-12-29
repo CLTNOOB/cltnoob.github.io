@@ -91,14 +91,17 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <div class="stat">🏢 Nível<br><strong id="level">1</strong></div>
 <div class="stat">🏦 Renda Passiva<br><strong id="passive">0</strong></div>
 <div class="stat">🏅 Medalhas<br><strong id="medals">0</strong></div>
+<div class="stat">💸 Empréstimo<br><strong id="loan">0</strong></div>
 </div>
 <button onclick="ganharDinheiro()">Ganhar dinheiro</button>
   <button id="upgradeBtn" onclick="upgrade()">Upgrade (custo <span id="upgradeCost">100</span>)</button>
 <button onclick="abrir('investimentos')">Investimentos</button>
+<button onclick="abrir('emprestimos')">💸 Empréstimos</button>
 <button onclick="abrir('graficos')">Gráficos</button>
 <button onclick="abrir('loja')">Loja</button>
 <button onclick="abrir('galeria')">Galeria</button>
 <button onclick="abrir('atualizacoesFeitas')">📜 Atualizações</button>
+<button onclick="abrir('prestigios')">🏅 Prestígios</button>
 <button onclick="exportarSave()">⬇️ Exportar Save</button>
 <input id="importFile" class="hidden" type="file" accept="application/json" onchange="importarSave(event)">
 <button onclick="document.getElementById('importFile').click()">⬆️ Importar Save</button>
@@ -142,6 +145,25 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <div class="stat endgame locked" data-required="5" style="margin-top:10px">🚀 Estação Espacial<br>Custo: 200.000.000<br>Retorno: 5.000.000 - 10.000.000 / 30s<button disabled style="opacity:0.6" onclick="comprarCasa('Estação Espacial',200000000,[5000000,10000000])">Bloqueado - Requer 5 medalhas</button></div> 
 
 <button onclick="voltar()">⬅ Voltar</button>
+</div>
+
+<div class="card hidden" id="emprestimos">
+  <h2>💸 Empréstimos</h2>
+  <div class="stat">Empréstimo atual: <strong id="loanDisplay">0</strong></div>
+  <div style="margin-top:10px;color:#ccc">Taxa padrão: <strong id="loanRateDisplay">2%</strong> por ciclo (30s). Você pode pedir um empréstimo imediato e pagar parcialmente ou integralmente.</div>
+  <div style="margin-top:10px">
+    <input id="loanAmountInput" type="number" placeholder="Valor do empréstimo" style="padding:8px;border-radius:6px;border:none;width:60%">
+    <button onclick="requestLoan()" style="margin-left:8px">Pedir Empréstimo</button>
+  </div>
+  <div style="margin-top:10px">
+    <input id="loanRepayInput" type="number" placeholder="Valor para pagar" style="padding:8px;border-radius:6px;border:none;width:60%">
+    <button onclick="repayLoanInput()" style="margin-left:8px">Pagar Empréstimo</button>
+    <button onclick="repayLoan(emprestimo)" style="margin-left:8px">Pagar Tudo</button>
+  </div>
+  <div style="margin-top:10px;color:#ccc;font-size:13px">Aconselhável pagar juros rapidamente para evitar crescimento exponencial do débito.</div>
+  <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
+    <button onclick="voltar()" class="log-btn secondary">Fechar</button>
+  </div>
 </div>
 
 <div class="card hidden" id="graficos">
@@ -212,6 +234,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
     <button id="prestigeBtn" onclick="attemptPrestige()">Prestigiar (Reset)</button>
     <div style="font-size:13px;color:#ccc;margin-top:8px">Ao prestigiar, você ganhará 1 medalha e seu progresso será resetado (dinheiro, nível, investimentos), mas manterá suas medalhas e bônus.</div>
     <div id="medalRow" style="margin-top:10px"></div>
+    <div id="prestigePreview" style="margin-top:10px;color:#ccc"></div>
   </div>
   <button onclick="voltar()">⬅ Voltar</button>
 </div>
@@ -233,7 +256,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 </main>
 <script>
 const MAX_UPGRADE_LEVEL = 100;
-let dinheiro=0,renda=1,nivel=1,rendaPassiva=0,custoUpgrade=100,prestigios=0;
+let dinheiro=0,renda=1,nivel=1,rendaPassiva=0,custoUpgrade=100,prestigios=0,emprestimo=0,emprestimoTaxa=0.02;
 let veiculosComprados=[],casasCompradas=[],isInvesting=false;
 
 // ==========================
@@ -280,6 +303,9 @@ function atualizar(){
   }
   marketPrice.innerText = marketPriceVal.toFixed(2);
   marketTrend.innerText = trend.type.charAt(0).toUpperCase() + trend.type.slice(1);
+  const loanEl = document.getElementById('loan'); if(loanEl) loanEl.innerText = emprestimo.toLocaleString();
+  const loanDisplay = document.getElementById('loanDisplay'); if(loanDisplay) loanDisplay.innerText = emprestimo.toLocaleString();
+  const loanRate = document.getElementById('loanRateDisplay'); if(loanRate) loanRate.innerText = Math.round(emprestimoTaxa*100) + '%';
   salvar();
 } 
 
@@ -487,7 +513,12 @@ function upgrade(){
     dinheiro-=custoUpgrade;
     renda += 1 + Math.floor(nivel * 0.1);
     nivel++;
-    custoUpgrade=Math.floor(custoUpgrade * 1.085);
+    // aplicar escala mais suave a partir do nível 71 (reduzir o multiplicador)
+    if(nivel <= 70){
+      custoUpgrade = Math.floor(custoUpgrade * 1.085);
+    } else {
+      custoUpgrade = Math.floor(custoUpgrade * 1.045);
+    }
     atualizar();
   } else alert('Dinheiro insuficiente');
 }
@@ -504,6 +535,42 @@ function comprarInvestimento(c,r){
     atualizar();
   } else alert('Dinheiro insuficiente');
 } 
+
+// Empréstimos: pedir e pagar
+function takeLoan(amount){
+  if(!amount || amount <= 0) return alert('Valor inválido');
+  dinheiro += amount;
+  emprestimo += Math.ceil(amount);
+  addLog(`Empréstimo concedido: ${amount.toLocaleString()}`);
+  salvar();
+  atualizar();
+}
+function requestLoan(){
+  const v = Number(document.getElementById('loanAmountInput').value);
+  if(!v || v<=0) return alert('Valor inválido');
+  // limite simples: não permitir pedir mais que 10x sua renda atual (evita abuso)
+  const cap = Math.max(5000, Math.floor(renda * 1000));
+  if(v > cap){ if(!confirm(`Valor alto — limite recomendado ${cap.toLocaleString()}. Deseja continuar?`)) return; }
+  takeLoan(v);
+  document.getElementById('loanAmountInput').value = '';
+}
+function repayLoan(amount){
+  const pay = Math.ceil(Number(amount) || 0);
+  if(pay <= 0) return;
+  if(dinheiro < pay) return alert('Dinheiro insuficiente para pagar esse valor');
+  dinheiro -= pay;
+  emprestimo -= pay;
+  if(emprestimo < 0) emprestimo = 0;
+  addLog(`Pagamento de empréstimo: ${pay.toLocaleString()}`);
+  salvar();
+  atualizar();
+}
+function repayLoanInput(){
+  const v = Number(document.getElementById('loanRepayInput').value);
+  if(!v || v<=0) return alert('Valor inválido');
+  repayLoan(v);
+  document.getElementById('loanRepayInput').value = '';
+}
 function isLockedHouse(name){
   const els = document.querySelectorAll('.endgame');
   for(const el of els){
@@ -554,6 +621,11 @@ const OFFLINE_LIMIT = 24 * 60 * 60 * 1000; // 24h
 // renda passiva a cada 30s (online)
 setInterval(()=>{
   dinheiro += Math.floor(rendaPassiva * getPrestigeMultiplier());
+  // aplicar juros do empréstimo se houver dívida
+  if(emprestimo > 0){
+    // juros compostos por ciclo
+    emprestimo = Math.ceil(emprestimo * (1 + emprestimoTaxa));
+  }
   atualizar();
 }, 30000);
 
@@ -568,6 +640,8 @@ function salvar(){
     casasCompradas,
     marketPriceVal,
     prestigios,
+    emprestimo,
+    emprestimoTaxa,
     lastSave: Date.now()
   }));
 }
@@ -588,6 +662,9 @@ function carregar(){
     casasCompradas = s.casasCompradas || [];
     marketPriceVal = s.marketPriceVal || initialPrice;
     prestigios = s.prestigios || 0;
+    // carregar estado de empréstimo
+    emprestimo = s.emprestimo || 0;
+    emprestimoTaxa = typeof s.emprestimoTaxa === 'number' ? s.emprestimoTaxa : emprestimoTaxa;
 
     priceHistory = Array(historyMax).fill(marketPriceVal);
 
@@ -723,10 +800,15 @@ function renderPrestigios(){
   const elReq = document.getElementById('prestigeReq');
   const elMedals = document.getElementById('medals');
   const medalRow = document.getElementById('medalRow');
+  const previewEl = document.getElementById('prestigePreview');
+  const btn = document.getElementById('prestigeBtn');
+  const req = requiredForNextPrestige();
+
   if(elCount) elCount.innerText = prestigios;
   if(elBonus) elBonus.innerText = (prestigios*2) + '%';
-  if(elReq) elReq.innerText = requiredForNextPrestige().toLocaleString();
+  if(elReq) elReq.innerText = req.toLocaleString();
   if(elMedals) elMedals.innerText = prestigios;
+
   if(medalRow){
     if(prestigios === 0){ medalRow.innerHTML = '<span style="color:#ccc">Nenhuma medalha ainda</span>'; }
     else{
@@ -734,6 +816,26 @@ function renderPrestigios(){
       for(let i=1;i<=prestigios;i++) html += `<span title="Medalha ${i}" style="font-size:20px;margin-right:6px">🏅</span>`;
       medalRow.innerHTML = html;
     }
+  }
+
+  if(previewEl){
+    const currentBonus = prestigios * 2;
+    const nextBonus = (prestigios + 1) * 2;
+    const nextMedals = prestigios + 1;
+    const nextReqAfter = (prestigios + 2) * 1000000;
+    const canPrestige = dinheiro >= req;
+
+    previewEl.innerHTML = `
+      <div>Ao prestigiar agora: <strong>+2% por prestígio</strong> → bônus: <strong>${currentBonus}% → ${nextBonus}%</strong></div>
+      <div style="margin-top:6px">Medalhas após prestigiar: <strong>${nextMedals}</strong></div>
+      <div style="margin-top:6px">Requisito atual: <strong>${req.toLocaleString()}</strong> — Próximo requisito após prestigiar: <strong>${nextReqAfter.toLocaleString()}</strong></div>
+      <div style="margin-top:6px;color:${canPrestige ? '#0f0' : '#f33'}">${canPrestige ? 'Você pode prestigiar agora.' : 'Você ainda não tem dinheiro suficiente para prestigiar.'}</div>
+    `;
+  }
+
+  if(btn){
+    btn.textContent = `Prestigiar (Requisito: ${req.toLocaleString()})`;
+    btn.disabled = dinheiro < req;
   }
 } 
 function updateEndgameUnlocks(){
@@ -758,6 +860,7 @@ function initLogs(){
       {msg:'Adicionados 5 novos veículos: XE, BMW 320i, Audi A3, Toyota Corolla, Honda Civic', ts: Date.now()},
       {msg:'Removida Nave Orbital da loja; veículos ajustados para categoria normal', ts: Date.now() - 1000*60*60},
       {msg:'Adicionadas 5 novas casas (Studio, Casa Moderna, Townhouse, Fazenda, Villa)', ts: Date.now() - 1000*60*60*3},
+      {msg:'Sistema de Empréstimos adicionado — peça empréstimos com juros e pague quando desejar', ts: Date.now() - 1000*60*60*6},
       {msg:'Logs reiniciados e atualizados com novas mensagens', ts: Date.now() - 1000*60*60*6}
     ];
     localStorage.setItem(key, JSON.stringify(seed));
