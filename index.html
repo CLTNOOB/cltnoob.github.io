@@ -151,6 +151,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
   <h2>💸 Empréstimos</h2>
   <div class="stat">Empréstimo atual: <strong id="loanDisplay">0</strong></div>
   <div style="margin-top:10px;color:#ccc">Taxa padrão: <strong id="loanRateDisplay">2%</strong> por ciclo (30s). Você pode pedir um empréstimo imediato e pagar parcialmente ou integralmente.</div>
+  <div id="loanCooldown" style="margin-top:8px;color:#ffd54f"></div>
   <div style="margin-top:10px">
     <input id="loanAmountInput" type="number" placeholder="Valor do empréstimo" style="padding:8px;border-radius:6px;border:none;width:60%">
     <button onclick="requestLoan()" style="margin-left:8px">Pedir Empréstimo</button>
@@ -256,7 +257,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 </main>
 <script>
 const MAX_UPGRADE_LEVEL = 100;
-let dinheiro=0,renda=1,nivel=1,rendaPassiva=0,custoUpgrade=100,prestigios=0,emprestimo=0,emprestimoTaxa=0.02;
+let dinheiro=0,renda=1,nivel=1,rendaPassiva=0,custoUpgrade=100,prestigios=0,emprestimo=0,emprestimoTaxa=0.02,emprestimoTakenAt=0;
 let veiculosComprados=[],casasCompradas=[],isInvesting=false;
 
 // ==========================
@@ -306,6 +307,18 @@ function atualizar(){
   const loanEl = document.getElementById('loan'); if(loanEl) loanEl.innerText = emprestimo.toLocaleString();
   const loanDisplay = document.getElementById('loanDisplay'); if(loanDisplay) loanDisplay.innerText = emprestimo.toLocaleString();
   const loanRate = document.getElementById('loanRateDisplay'); if(loanRate) loanRate.innerText = Math.round(emprestimoTaxa*100) + '%';
+  const loanCooldownEl = document.getElementById('loanCooldown'); if(loanCooldownEl){
+    if(!emprestimo || emprestimo <= 0) loanCooldownEl.innerText = 'Sem dívida';
+    else{
+      const remain = Math.max(0, 300000 - (Date.now() - (emprestimoTakenAt || 0)));
+      if(remain > 0){
+        const mm = Math.floor(remain/60000); const ss = Math.floor((remain%60000)/1000);
+        loanCooldownEl.innerText = `Você poderá pagar em ${mm}m ${ss}s`;
+      } else {
+        loanCooldownEl.innerText = 'Você pode pagar o empréstimo agora';
+      }
+    }
+  }
   salvar();
 } 
 
@@ -541,26 +554,38 @@ function takeLoan(amount){
   if(!amount || amount <= 0) return alert('Valor inválido');
   dinheiro += amount;
   emprestimo += Math.ceil(amount);
-  addLog(`Empréstimo concedido: ${amount.toLocaleString()}`);
+  emprestimoTakenAt = Date.now(); // grava o momento do empréstimo
+  addLog(`Empréstimo concedido: ${amount.toLocaleString()} — você poderá pagar em ~5 minutos`);
   salvar();
   atualizar();
 }
 function requestLoan(){
   const v = Number(document.getElementById('loanAmountInput').value);
   if(!v || v<=0) return alert('Valor inválido');
-  // limite simples: não permitir pedir mais que 10x sua renda atual (evita abuso)
-  const cap = Math.max(5000, Math.floor(renda * 1000));
-  if(v > cap){ if(!confirm(`Valor alto — limite recomendado ${cap.toLocaleString()}. Deseja continuar?`)) return; }
+  // limite: máximo 50% do dinheiro atual
+  const cap = Math.floor(dinheiro * 0.5);
+  if(cap <= 0) return alert('Você não tem saldo suficiente para solicitar empréstimo (limite: 0)');
+  if(v > cap){ return alert(`Limite excedido. Você pode pedir no máximo ${cap.toLocaleString()} (50% do seu saldo atual)`); }
   takeLoan(v);
   document.getElementById('loanAmountInput').value = '';
 }
 function repayLoan(amount){
   const pay = Math.ceil(Number(amount) || 0);
   if(pay <= 0) return;
+  if(emprestimo <= 0) return alert('Você não possui empréstimos para pagar');
+  // verificar cooldown de 5 minutos (300000ms)
+  const now = Date.now();
+  if(now - (emprestimoTakenAt || 0) < 300000) {
+    const remain = 300000 - (now - (emprestimoTakenAt || 0));
+    const mm = Math.floor(remain / 60000);
+    const ss = Math.floor((remain % 60000) / 1000);
+    return alert(`Você só poderá pagar o empréstimo em ${mm}m ${ss}s`);
+  }
   if(dinheiro < pay) return alert('Dinheiro insuficiente para pagar esse valor');
   dinheiro -= pay;
   emprestimo -= pay;
   if(emprestimo < 0) emprestimo = 0;
+  if(emprestimo === 0) emprestimoTakenAt = 0; // reset cooldown quando quitado
   addLog(`Pagamento de empréstimo: ${pay.toLocaleString()}`);
   salvar();
   atualizar();
@@ -642,6 +667,7 @@ function salvar(){
     prestigios,
     emprestimo,
     emprestimoTaxa,
+    emprestimoTakenAt,
     lastSave: Date.now()
   }));
 }
@@ -665,6 +691,9 @@ function carregar(){
     // carregar estado de empréstimo
     emprestimo = s.emprestimo || 0;
     emprestimoTaxa = typeof s.emprestimoTaxa === 'number' ? s.emprestimoTaxa : emprestimoTaxa;
+    emprestimoTakenAt = s.emprestimoTakenAt || 0;
+    // IMPORTANTE: não aplicar juros do empréstimo enquanto o jogador esteve offline (juros só são computados enquanto o jogo está ativo)
+
 
     priceHistory = Array(historyMax).fill(marketPriceVal);
 
@@ -688,7 +717,8 @@ function carregar(){
 
 function exportarSave(){salvar();const data=localStorage.getItem('save');const blob=new Blob([data],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='sim_save.json';a.click();URL.revokeObjectURL(url);}
 function importarSave(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const s=JSON.parse(r.result);dinheiro=s.dinheiro||0;renda=s.renda||1;nivel=s.nivel||1;rendaPassiva=s.rendaPassiva||0;custoUpgrade=s.custoUpgrade || 100;veiculosComprados=s.veiculosComprados||[];casasCompradas=s.casasCompradas||[];marketPriceVal = s.marketPriceVal || initialPrice; priceHistory = Array(historyMax).fill(marketPriceVal);salvar();atualizar();alert('Save importado com sucesso!');}catch(err){alert('Arquivo inválido');}};r.readAsText(f);e.target.value='';}
-function apagarSave(){if(confirm('Apagar save?')){localStorage.removeItem('save');dinheiro=0;renda=1;nivel=1;rendaPassiva=0;custoUpgrade=100;prestigios=0;veiculosComprados=[];casasCompradas=[];marketPriceVal = initialPrice; priceHistory = Array(historyMax).fill(marketPriceVal);atualizar();alert('Save apagado');} }
+function apagarSave(){if(confirm('Apagar save?')){localStorage.removeItem('save');dinheiro=0;renda=1;nivel=1;rendaPassiva=0;custoUpgrade=100;prestigios=0;veiculosComprados=[];casasCompradas=[];marketPriceVal = initialPrice; priceHistory = Array(historyMax).fill(marketPriceVal); // reset loan state as well
+    emprestimo = 0; emprestimoTakenAt = 0; emprestimoTaxa = 0.02; atualizar();alert('Save apagado e dívida zerada');} }
 
 /* Tutorial inicial (mostra apenas na primeira vez) */
 const tutorialSteps = [
@@ -854,26 +884,17 @@ function updateEndgameUnlocks(){
 
 function initLogs(){
   const key = 'update_logs';
-  const current = JSON.parse(localStorage.getItem(key) || '[]');
-  if(current.length === 0){
-    const seed = [
-      {msg:'Adicionados 5 novos veículos: XE, BMW 320i, Audi A3, Toyota Corolla, Honda Civic', ts: Date.now()},
-      {msg:'Removida Nave Orbital da loja; veículos ajustados para categoria normal', ts: Date.now() - 1000*60*60},
-      {msg:'Adicionadas 5 novas casas (Studio, Casa Moderna, Townhouse, Fazenda, Villa)', ts: Date.now() - 1000*60*60*3},
-      {msg:'Sistema de Empréstimos adicionado — peça empréstimos com juros e pague quando desejar', ts: Date.now() - 1000*60*60*6},
-      {msg:'Logs reiniciados e atualizados com novas mensagens', ts: Date.now() - 1000*60*60*6}
-    ];
-    localStorage.setItem(key, JSON.stringify(seed));
-  } else {
-    // garantir mensagens principais sem duplicar
-    if(!current.some(l=>l.msg && l.msg.includes('Adicionados 5 novos veículos'))){
-      current.unshift({msg:'Adicionados 5 novos veículos: XE, BMW 320i, Audi A3, Toyota Corolla, Honda Civic', ts: Date.now()});
-    }
-    if(!current.some(l=>l.msg && l.msg.includes('Adicionadas 5 novas casas'))){
-      current.unshift({msg:'Adicionadas 5 novas casas (Studio, Casa Moderna, Townhouse, Fazenda, Villa)', ts: Date.now() - 1000*60*60});
-    }
-    localStorage.setItem(key, JSON.stringify(current));
-  }
+  // substituir todas as logs antigas pelas mensagens atuais
+  const seed = [
+    {msg:'Adicionados 5 novos veículos: XE, BMW 320i, Audi A3, Toyota Corolla, Honda Civic', ts: Date.now()},
+    {msg:'Adicionadas 5 novas casas (Studio, Casa Moderna, Townhouse, Fazenda, Villa)', ts: Date.now() - 1000*60*60},
+    {msg:'Sistema de Empréstimos adicionado — peça empréstimos com juros e pague quando desejar', ts: Date.now() - 1000*60*60*2},
+    {msg:'Logs reiniciados — antigas entradas removidas e substituídas pelas mensagens atuais', ts: Date.now() - 1000*60*60*3}
+  ];
+  localStorage.setItem(key, JSON.stringify(seed));
+  // marcar como não lidas para que o jogador veja as atualizações
+  localStorage.setItem('logs_read_at','0');
+
   // oculta anúncio se já dispensado anteriormente
   const ann = localStorage.getItem('announcement_dismissed');
   if(ann === '1'){
