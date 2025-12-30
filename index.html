@@ -334,7 +334,6 @@ function atualizar(){
       }
     }
   }
-  salvar();
 } 
 
 // ==========================
@@ -1091,10 +1090,11 @@ function initLogs(){
   renderPrestigios();
   updateEndgameUnlocks();
 }
+// Carregar save do jogador antes de inicializar logs que podem gravar estado
+carregar();
 // inicializa logs (chama uma vez ao carregar)
 initLogs();
 
-carregar();
 startMarket();
 atualizar();
 
