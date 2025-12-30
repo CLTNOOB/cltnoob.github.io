@@ -1097,6 +1097,12 @@ initLogs();
 carregar();
 startMarket();
 atualizar();
+
+// Periodic autosave para reduzir risco de perda ao recarregar
+setInterval(()=> salvar(), 5000); // salva a cada 5s (salvar tem throttle interno)
+
+// Força save ao descarregar a página (recarregar/fechar)
+window.addEventListener('beforeunload', ()=> salvar(true));
 </script>
 </body>
 </html>
