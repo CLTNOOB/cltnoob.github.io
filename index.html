@@ -692,7 +692,14 @@ function setupPassiveInterval(){
 setupPassiveInterval();
 
 let __lastSaveAt = 0; const __saveThrottleMs = 2000; // limite mínimo entre gravações
+let __saveCorrupted = false;
 function salvar(force = false){
+  // se o save local foi marcado como corrompido, NÃO sobrescrevemos automaticamente
+  if(__saveCorrupted && !force){
+    console.warn('Save local marcado como corrompido; ação manual necessária para sobrescrever');
+    const el = document.getElementById('saveStatus'); if(el) el.innerText = 'Save local corrompido — ação manual necessária';
+    return;
+  }
   // throttle simples: evita gravar em localStorage muitas vezes por segundo
   if(!force && Date.now() - __lastSaveAt < __saveThrottleMs) return;
   const payload = {
@@ -715,6 +722,7 @@ function salvar(force = false){
   try{
     localStorage.setItem('save', JSON.stringify(payload));
     __lastSaveAt = Date.now();
+    __saveCorrupted = false; // gravação bem sucedida corrige o estado
     const el = document.getElementById('saveStatus');
     if(el) el.innerText = 'Último save: ' + new Date(__lastSaveAt).toLocaleString();
     // para depuração silenciosa
@@ -731,8 +739,12 @@ function carregar(){
 
   try{
     const s = JSON.parse(raw);
+    // Validação simples: garantir que o objeto tem a estrutura mínima
+    if(!s || typeof s !== 'object' || (typeof s.dinheiro === 'undefined' && typeof s.lastSave === 'undefined')){
+      throw new Error('Formato de save inválido');
+    }
 
-    dinheiro = s.dinheiro || 0;
+    dinheiro = typeof s.dinheiro === 'number' ? s.dinheiro : (s.dinheiro ? Number(s.dinheiro) : 0);
     renda = s.renda || 1;
     nivel = s.nivel || 1;
     rendaPassiva = s.rendaPassiva || 0;
@@ -748,8 +760,6 @@ function carregar(){
     // carregar loja de prestígios e intervalos
     prestigeShop = s.prestigeShop || prestigeShop;
     passiveIntervalMs = s.passiveIntervalMs || passiveIntervalMs;
-    // IMPORTANTE: não aplicar juros do empréstimo enquanto o jogador esteve offline (juros só são computados enquanto o jogo está ativo)
-
 
     priceHistory = Array(historyMax).fill(marketPriceVal);
     setupPassiveInterval();
@@ -764,10 +774,23 @@ function carregar(){
       dinheiro += ganhoOffline;
     }
 
-    salvar(); // atualiza timestamp e evita exploit
+    // carregado com sucesso — limpar flag de corrompido e atualizar status
+    __saveCorrupted = false;
+    const el = document.getElementById('saveStatus'); if(el) el.innerText = 'Último save: ' + new Date(s.lastSave||Date.now()).toLocaleString();
+
+    // atualiza timestamp para prevenir exploit
+    salvar(true);
 
   }catch(e){
     console.warn('Save inválido', e);
+    // preservar o conteúdo corrompido para análise e impedir sobrescrita automática
+    try{
+      const key = 'save_corrupted_' + Date.now();
+      localStorage.setItem(key, raw);
+      __saveCorrupted = true;
+      const el = document.getElementById('saveStatus'); if(el) el.innerText = 'Save local corrompido — ' + key + ' preservado';
+      alert('Save local detectado como corrompido. Criei uma cópia em "' + key + '" para preservação. Importe um backup ou clique em "Salvar Agora" para sobrescrever.');
+    }catch(err){ console.error('Erro ao preservar save corrompido', err); }
   }
 }
 
