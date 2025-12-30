@@ -105,6 +105,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <button onclick="abrir('prestigios')">🏅 Prestígios</button>
 <button onclick="salvar(true)">💾 Salvar Agora</button>
 <button onclick="exportarSave()">⬇️ Exportar Save</button>
+<button onclick="showSaveDebug()" class="log-btn">🔍 Diagnóstico Save</button>
 <input id="importFile" class="hidden" type="file" accept="application/json" onchange="importarSave(event)">
 <button onclick="document.getElementById('importFile').click()">⬆️ Importar Save</button>
 <button onclick="apagarSave()">🗑️ Apagar Save</button>
@@ -720,6 +721,7 @@ function salvar(force = false){
     lastSave: Date.now()
   };
   try{
+    console.debug('payload de save a ser gravado:', payload);
     localStorage.setItem('save', JSON.stringify(payload));
     __lastSaveAt = Date.now();
     __saveCorrupted = false; // gravação bem sucedida corrige o estado
@@ -735,6 +737,7 @@ function salvar(force = false){
 
 function carregar(){
   const raw = localStorage.getItem('save');
+  console.info('carregar(): conteúdo bruto do save:', raw);
   if(!raw) return;
 
   try{
@@ -806,6 +809,25 @@ function exportarSave(){
     const a = document.createElement('a'); a.href = url; a.download = 'sim_save.json'; a.click();
     URL.revokeObjectURL(url);
   }catch(e){ console.error('Erro ao exportar', e); alert('Erro ao exportar: ' + (e && e.message ? e.message : e)); }
+}
+
+function showSaveDebug(){
+  try{
+    const keys = [];
+    for(let i=0;i<localStorage.length;i++) keys.push(localStorage.key(i));
+    const raw = localStorage.getItem('save');
+    let parsed = null;
+    try{ parsed = JSON.parse(raw); }catch(e){ /* keep raw */ }
+    console.group('Save Debug');
+    console.log('Chaves em localStorage:', keys);
+    console.log('save (raw):', raw);
+    console.log('save (parsed):', parsed);
+    console.groupEnd();
+    let msg = 'Chaves em localStorage:\n' + keys.join('\n') + '\n\n';
+    msg += 'save (raw):\n' + (raw ? raw.substring(0,200) + (raw.length>200 ? '\n... (truncado)' : '') : 'vazio') + '\n\n';
+    msg += 'Abra o Console (F12) para ver detalhes completos.';
+    alert(msg);
+  }catch(e){ console.error('Erro em showSaveDebug', e); alert('Erro ao inspecionar save: ' + e.message); }
 } 
 function importarSave(e){
   const f = e.target.files[0]; if(!f) return;
