@@ -58,6 +58,14 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .endgame.locked{opacity:0.6;filter:grayscale(50%)}
 .stat.endgame button{min-width:120px}
 
+/* Dev panel */
+.dev-panel{position:fixed;left:12px;bottom:12px;background:rgba(0,0,0,0.85);color:#fff;padding:12px;border-radius:8px;z-index:99999;box-shadow:0 8px 30px rgba(0,0,0,0.6);width:340px;font-size:13px}
+.dev-panel h4{margin:0 0 8px 0;font-size:14px}
+.dev-panel input, .dev-panel select{width:100%;padding:6px;margin:6px 0;border-radius:6px;border:none}
+.dev-panel .row{display:flex;gap:8px}
+.dev-panel button{flex:1;padding:8px;border-radius:6px;border:none;background:#00c6ff;color:#002a33;cursor:pointer}
+.dev-panel .small{font-size:12px;color:#ccc}
+
 </style>
 </head>
 <body>
@@ -67,6 +75,36 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <div id="saveStatus" style="font-size:12px;color:#ccc;margin-top:6px">Último save: —</div>
 </header>
 <!-- Announcement bar -->
+<!-- Dev/testing panel (visible with ?dev=1 or Ctrl+Shift+D) -->
+<div id="devPanel" class="dev-panel" style="display:none">
+  <h4>Dev Panel</h4>
+  <label>Dinheiro</label>
+  <input id="devMoneyInput" type="number" placeholder="1000">
+  <div class="row"><button onclick="devAddMoney()">Adicionar</button><button onclick="devReset()">Reset</button></div>
+
+  <label>Prestígios</label>
+  <input id="devPrestigeInput" type="number" placeholder="1">
+  <div class="row"><button onclick="devAddPrestige()">Adicionar</button><button onclick="devSetPrestige(0)">Zerar</button></div>
+
+  <label>Nível</label>
+  <input id="devLevelInput" type="number" placeholder="1">
+  <div class="row"><button onclick="devSetLevel()">Setar</button><button onclick="devAddMoney(10000)">+10k</button></div>
+
+  <hr style="border:none;border-top:1px solid rgba(255,255,255,0.06);margin:8px 0">
+  <label>Dar Veículo (nome)</label>
+  <input id="devVehicleName" placeholder="Nome do veículo">
+  <label>Preço</label>
+  <input id="devVehiclePrice" type="number" placeholder="1000">
+  <div class="row"><button onclick="devGiveVehicle()">Dar veículo</button><button onclick="devGiveVehiclesPreset()">Dar 3 veículos</button></div>
+
+  <label>Dar Casa (nome)</label>
+  <input id="devHouseName" placeholder="Nome da casa">
+  <label>Preço</label>
+  <input id="devHousePrice" type="number" placeholder="10000">
+  <div class="row"><button onclick="devGiveHouse()">Dar casa</button><button onclick="devGiveHousesPreset()">Dar 3 casas</button></div>
+
+  <div style="margin-top:8px" class="small">Atalho: Ctrl+Shift+D — ou abra com ?dev=1</div>
+</div>
 <div id="announcementBar" class="announcement">
   <strong>Novo!</strong> Novo sistema AFK — registra seus ganhos com renda passiva
   <div class="actions">
@@ -1090,6 +1128,41 @@ function initLogs(){
   renderPrestigios();
   updateEndgameUnlocks();
 }
+// Funções utilitárias para desenvolvedores/testers
+function initDevTools(){
+  try{
+    const params = new URLSearchParams(location.search);
+    const dev = params.get('dev') === '1' || localStorage.getItem('dev_mode') === '1';
+    if(dev){
+      const p = document.getElementById('devPanel'); if(p) p.style.display = 'block';
+      localStorage.setItem('dev_mode','1');
+      console.info('Dev mode ativado');
+    }
+  }catch(e){/* ignore */}
+}
+function toggleDevTools(){ const p = document.getElementById('devPanel'); if(!p) return; p.style.display = (p.style.display==='block') ? 'none' : 'block'; localStorage.setItem('dev_mode', p.style.display==='block' ? '1' : '0'); }
+document.addEventListener('keydown', (e)=>{ if(e.ctrlKey && e.shiftKey && e.key.toLowerCase()==='d'){ toggleDevTools(); } });
+
+function devAddMoney(val){
+  const v = typeof val === 'number' ? val : Number(document.getElementById('devMoneyInput').value)||0;
+  dinheiro += v;
+  salvar(true);
+  atualizar();
+  console.info('Dev: adicionou dinheiro', v);
+}
+function devAddPrestige(){ const v = Number(document.getElementById('devPrestigeInput').value)||0; prestigios += v; renderPrestigios(); salvar(true); atualizar(); console.info('Dev: adicionou prestigio', v); }
+function devSetPrestige(v){ prestigios = Number(v)||0; renderPrestigios(); salvar(true); atualizar(); console.info('Dev: set prestige',prestigios);} 
+function devSetLevel(){ const v = Number(document.getElementById('devLevelInput').value)||1; nivel = v; atualizar(); salvar(true); console.info('Dev: set level', v); }
+function devGiveVehicle(){ const name = document.getElementById('devVehicleName').value || 'DevCar'; const price = Number(document.getElementById('devVehiclePrice').value)||0; veiculosComprados.push({nome:name,preco:price}); salvar(true); atualizar(); console.info('Dev: deu veiculo', name); }
+function devGiveHouse(){ const name = document.getElementById('devHouseName').value || 'DevHouse'; const price = Number(document.getElementById('devHousePrice').value)||0; casasCompradas.push({nome:name,preco:price}); rendaPassiva += Math.floor(price/100); salvar(true); atualizar(); console.info('Dev: deu casa', name); }
+function devGiveVehiclesPreset(){ devGiveVehicleHelper('DevCar A',1000); devGiveVehicleHelper('DevCar B',1500); devGiveVehicleHelper('DevCar C',2000); salvar(true); atualizar(); }
+function devGiveVehicleHelper(n,p){ veiculosComprados.push({nome:n,preco:p}); }
+function devGiveHousesPreset(){ devGiveHouseHelper('DevHouse A',10000); devGiveHouseHelper('DevHouse B',20000); devGiveHouseHelper('DevHouse C',50000); salvar(true); atualizar(); }
+function devGiveHouseHelper(n,p){ casasCompradas.push({nome:n,preco:p}); rendaPassiva += Math.floor(p/100); }
+function devReset(){ if(!confirm('Resetar variáveis de desenvolvimento?')) return; dinheiro=0; renda=1; nivel=1; rendaPassiva=0; prestigios=0; veiculosComprados=[]; casasCompradas=[]; salvar(true); atualizar(); console.info('Dev: reset completo'); }
+// Inicializar devtools se parâmetro presente
+initDevTools();
+
 // Carregar save do jogador antes de inicializar logs que podem gravar estado
 carregar();
 // inicializa logs (chama uma vez ao carregar)
@@ -1105,6 +1178,7 @@ setInterval(()=> salvar(), 5000); // salva a cada 5s (salvar tem throttle intern
 window.addEventListener('beforeunload', () => {
   salvar();
 });
+
 
 
 window.addEventListener('beforeunload', () => {
