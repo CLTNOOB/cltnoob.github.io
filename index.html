@@ -64,6 +64,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <header>
 <h1>💼 Simulador de Negócios</h1>
 <p>Sistemas avançados</p>
+<div id="saveStatus" style="font-size:12px;color:#ccc;margin-top:6px">Último save: —</div>
 </header>
 <!-- Announcement bar -->
 <div id="announcementBar" class="announcement">
@@ -102,6 +103,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <button onclick="abrir('galeria')">Galeria</button>
 <button onclick="abrir('atualizacoesFeitas')">📜 Atualizações</button>
 <button onclick="abrir('prestigios')">🏅 Prestígios</button>
+<button onclick="salvar(true)">💾 Salvar Agora</button>
 <button onclick="exportarSave()">⬇️ Exportar Save</button>
 <input id="importFile" class="hidden" type="file" accept="application/json" onchange="importarSave(event)">
 <button onclick="document.getElementById('importFile').click()">⬆️ Importar Save</button>
@@ -243,7 +245,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
       <div class="changelog-item">📈 +20% Renda Passiva (único) — Custo: <strong>2</strong> medalhas <button id="buyPassiveBoost" onclick="buyPrestigeItem('passiveBoost')" style="float:right">Comprar</button></div>
       <div class="changelog-item">⏱️ Reduzir intervalo de renda passiva (5 compras disponíveis; -2s por compra) — Custo: <strong>1</strong> medalha cada <button id="buyPassiveSpeed" onclick="buyPrestigeItem('passiveSpeed')" style="float:right">Comprar</button> <span id="passiveSpeedCount" style="margin-left:8px;color:#ccc">(0/5)</span></div>
       <div class="changelog-item">🏷️ Desconto Permanente de 10% (único) — Custo: <strong>5</strong> medalhas <button id="buyDiscount" onclick="buyPrestigeItem('discount')" style="float:right">Comprar</button></div>
-      <div class="changelog-item">✨ Multiplicador Global +10% (Clickers & Investimentos) — Custo: <strong>3</strong> medalhas <button id="buyGlobalMul" onclick="buyPrestigeItem('globalMultiplier')" style="float:right">Comprar</button></div>
+      <div class="changelog-item">✨ Multiplicador Global +10% (Clickers & Investimentos) — <strong>Único</strong> — Custo: <strong>3</strong> medalhas <button id="buyGlobalMul" onclick="buyPrestigeItem('globalMultiplier')" style="float:right">Comprar</button></div>
     </div>
   </div>
   <button onclick="voltar()">⬅ Voltar</button>
@@ -535,8 +537,8 @@ function getPrestigeMultiplier(){
   return 1 + Math.min(prestigios * 0.05, 0.5);
 }
 function ganharDinheiro(){
-  // maior escala para clicks: aumenta com o nível e com multiplicadores da loja de prestígios
-  const levelMul = 1 + Math.floor(nivel / 2); // escala forte com nível
+  // escala de clique ajustada: aumenta mais devagar com o nível para evitar valores excessivos (ex: lvl100 → ~6x)
+  const levelMul = 1 + Math.floor(nivel / 20); // +1 a cada 20 níveis (lvl100 → 6x)
   const globalMul = prestigeShop.globalMultiplier ? 1.10 : 1;
   const amount = Math.floor(renda * levelMul * getPrestigeMultiplier() * globalMul);
   dinheiro += amount;
@@ -689,8 +691,11 @@ function setupPassiveInterval(){
 // iniciar intervalo padrão
 setupPassiveInterval();
 
-function salvar(){
-  localStorage.setItem('save', JSON.stringify({
+let __lastSaveAt = 0; const __saveThrottleMs = 2000; // limite mínimo entre gravações
+function salvar(force = false){
+  // throttle simples: evita gravar em localStorage muitas vezes por segundo
+  if(!force && Date.now() - __lastSaveAt < __saveThrottleMs) return;
+  const payload = {
     dinheiro,
     renda,
     nivel,
@@ -706,8 +711,19 @@ function salvar(){
     prestigeShop,
     passiveIntervalMs,
     lastSave: Date.now()
-  }));
-}
+  };
+  try{
+    localStorage.setItem('save', JSON.stringify(payload));
+    __lastSaveAt = Date.now();
+    const el = document.getElementById('saveStatus');
+    if(el) el.innerText = 'Último save: ' + new Date(__lastSaveAt).toLocaleString();
+    // para depuração silenciosa
+    console.info('Save salvo em', new Date(__lastSaveAt).toISOString());
+  }catch(e){
+    console.error('Erro ao salvar', e);
+    alert('Não foi possível salvar localmente: ' + (e && e.message ? e.message : e));
+  }
+} 
 
 function carregar(){
   const raw = localStorage.getItem('save');
@@ -757,8 +773,31 @@ function carregar(){
 
 
 
-function exportarSave(){salvar();const data=localStorage.getItem('save');const blob=new Blob([data],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='sim_save.json';a.click();URL.revokeObjectURL(url);}
-function importarSave(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const s=JSON.parse(r.result);dinheiro=s.dinheiro||0;renda=s.renda||1;nivel=s.nivel||1;rendaPassiva=s.rendaPassiva||0;custoUpgrade=s.custoUpgrade || 100;veiculosComprados=s.veiculosComprados||[];casasCompradas=s.casasCompradas||[];marketPriceVal = s.marketPriceVal || initialPrice; priceHistory = Array(historyMax).fill(marketPriceVal);salvar();atualizar();alert('Save importado com sucesso!');}catch(err){alert('Arquivo inválido');}};r.readAsText(f);e.target.value='';}
+function exportarSave(){
+  salvar(true);
+  const data = localStorage.getItem('save');
+  if(!data){ alert('Nenhum save encontrado para exportar'); return; }
+  try{
+    const blob = new Blob([data],{type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'sim_save.json'; a.click();
+    URL.revokeObjectURL(url);
+  }catch(e){ console.error('Erro ao exportar', e); alert('Erro ao exportar: ' + (e && e.message ? e.message : e)); }
+} 
+function importarSave(e){
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try{
+      const s = JSON.parse(r.result);
+      dinheiro = s.dinheiro || 0; renda = s.renda || 1; nivel = s.nivel || 1; rendaPassiva = s.rendaPassiva || 0; custoUpgrade = s.custoUpgrade || 100;
+      veiculosComprados = s.veiculosComprados || []; casasCompradas = s.casasCompradas || [];
+      marketPriceVal = s.marketPriceVal || initialPrice; priceHistory = Array(historyMax).fill(marketPriceVal);
+      salvar(true); atualizar(); alert('Save importado com sucesso!');
+    }catch(err){ alert('Arquivo inválido'); }
+  };
+  r.readAsText(f); e.target.value = '';
+}
 function apagarSave(){if(confirm('Apagar save?')){localStorage.removeItem('save');dinheiro=0;renda=1;nivel=1;rendaPassiva=0;custoUpgrade=100;prestigios=0;veiculosComprados=[];casasCompradas=[];marketPriceVal = initialPrice; priceHistory = Array(historyMax).fill(marketPriceVal); // reset loan state as well
     emprestimo = 0; emprestimoTakenAt = 0; emprestimoTaxa = 0.02; atualizar();alert('Save apagado e dívida zerada');} }
 
