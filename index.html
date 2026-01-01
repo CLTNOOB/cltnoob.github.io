@@ -278,7 +278,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <div class="card hidden" id="settings">
   <h2>⚙️ Configurações</h2>
   <div id="settingsContent" style="margin-top:12px">
-    <div>Nome: <strong id="settingsName">-</strong></div>
+    <div>Nome: <strong id="settingsName">-</strong> <button onclick="definePlayerName()">Definir nome</button></div>
     <div>Dinheiro: <strong id="settingsMoney">0</strong></div>
     <div style="margin-top:8px"><label><input type="checkbox" id="optOutCheckbox" /> Excluir-me dos Rankings (opt-out)</label></div>
   </div>
@@ -1039,7 +1039,25 @@ function ensurePlayerName(){
 
     return;
   }
-} 
+}
+
+function definePlayerName(){
+  // Permite ao usuário definir/alterar o nome a partir das configurações
+  loadChosenNames();
+  const name = prompt('defina seu nome');
+  if(name === null) return; // cancelou
+  const trimmed = name.trim().substring(0,20);
+  if(!trimmed){ alert('Nome inválido.'); return; }
+  // unicidade: permite manter o próprio nome, mas impede escolher nome já usado por outro
+  const exists = chosenNames.some(n => n.toLowerCase() === trimmed.toLowerCase());
+  if(exists && (!playerName || trimmed.toLowerCase() !== playerName.toLowerCase())){ alert('Nome já existe. Escolha outro.'); return; }
+  if(!exists) { chosenNames.push(trimmed); saveChosenNames(); }
+  playerName = trimmed;
+  localStorage.setItem('playerNameChosen','1');
+  salvar(true);
+  renderSettings();
+  alert('Nome definido: ' + playerName);
+}  
 
 function loadLeaderboards(){
   try{ leaderboards = JSON.parse(localStorage.getItem('leaderboards') || '{"money":[],"time":[]}'); }catch(e){ leaderboards = {money:[], time:[]}; }
@@ -1166,6 +1184,16 @@ function addLog(msg){
   logs.unshift({msg:msg, ts: Date.now()});
   localStorage.setItem('update_logs', JSON.stringify(logs));
   renderLogs();
+}
+
+function seedUpdateLogs(){
+  const version = '2025-12-31-1';
+  if(localStorage.getItem('update_version') === version) return;
+  addLog('Atualização: Poção agora dura 2 minutos; buffs não acumulam; sistema de Caixas adicionado.');
+  addLog('Rankings: abas Dinheiro e Tempo adicionadas; atualização automática a cada 2 minutos; top 10 mantido.');
+  addLog('Configurações: agora você pode definir seu nome manualmente; opção de excluir-se dos rankings (opt-out).');
+  addLog('Envio automático para ranking ao salvar forçado ativado.');
+  localStorage.setItem('update_version', version);
 }
 function renderLogs(){
   const fullEl = document.getElementById('updateLogsList');
@@ -1389,6 +1417,8 @@ initLogs();
 
 // carregar listas locais e iniciar auto-update de rankings
 loadChosenNames(); loadLeaderboards();
+// semear logs de atualização (apenas uma vez por versão)
+seedUpdateLogs();
 // disparar uma atualização imediata (e depois a cada 2 minutos)
 autoUpdateRankings();
 
