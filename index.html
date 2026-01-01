@@ -139,11 +139,12 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <button onclick="abrir('graficos')">Gráficos</button>
 <button onclick="abrir('loja')">Loja</button>
 <button onclick="abrir('galeria')">Galeria</button>
+<button onclick="abrir('rankings')">🏆 Rankings</button>
+<button onclick="abrir('settings')">⚙️ Configurações</button>
 <button onclick="abrir('atualizacoesFeitas')">📜 Atualizações</button>
 <button onclick="abrir('prestigios')">🏅 Prestígios</button>
 <button onclick="salvar(true)">💾 Salvar Agora</button>
 <button onclick="exportarSave()">⬇️ Exportar Save</button>
-<button onclick="showSaveDebug()" class="log-btn">🔍 Diagnóstico Save</button>
 <input id="importFile" class="hidden" type="file" accept="application/json" onchange="importarSave(event)">
 <button onclick="document.getElementById('importFile').click()">⬆️ Importar Save</button>
 <button onclick="apagarSave()">🗑️ Apagar Save</button>
@@ -179,11 +180,11 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <div class="stat" style="margin-top:10px">Villa<br>Custo: 350.000<br>Retorno: +3800 / 30s<button onclick="comprarCasa('Villa',350000,3800)">Comprar</button></div>
 
 <div style="margin-top:15px"><h3>Casas End-Game (desbloqueadas por prestígios)</h3></div>
-<div class="stat" style="margin-top:10px">🏢 Corporação Global<br>Custo: 10.000.000<br>Retorno: 100.000 - 200.000 / 30s<button onclick="comprarCasa('Corporação Global',10000000,[100000,200000])">Comprar</button></div>
-<div class="stat" style="margin-top:10px">🏬 Império Multinacional<br>Custo: 25.000.000<br>Retorno: 250.000 - 500.000 / 30s<button onclick="comprarCasa('Império Multinacional',25000000,[250000,500000])">Comprar</button></div>
-<div class="stat" style="margin-top:10px">🏛️ Conglomerado Planetário<br>Custo: 70.000.000<br>Retorno: 700.000 - 1.200.000 / 30s<button onclick="comprarCasa('Conglomerado Planetário',70000000,[700000,1200000])">Comprar</button></div>
-<div class="stat" style="margin-top:10px">🌙 Colônia Lunar<br>Custo: 120.000.000<br>Retorno: 1.200.000 - 3.000.000 / 30s<button onclick="comprarCasa('Colônia Lunar',120000000,[1200000,3000000])">Comprar</button></div>
-<div class="stat" style="margin-top:10px">🚀 Estação Espacial<br>Custo: 200.000.000<br>Retorno: 5.000.000 - 10.000.000 / 30s<button onclick="comprarCasa('Estação Espacial',200000000,[5000000,10000000])">Comprar</button></div> 
+<div class="stat" style="margin-top:10px">🏢 Corporação Global<br>Custo: 8.000.000<br>Retorno: 90.000 - 180.000 / 30s<button onclick="comprarCasa('Corporação Global',8000000,[90000,180000])">Comprar</button></div>
+<div class="stat" style="margin-top:10px">🏬 Império Multinacional<br>Custo: 20.000.000<br>Retorno: 225.000 - 450.000 / 30s<button onclick="comprarCasa('Império Multinacional',20000000,[225000,450000])">Comprar</button></div>
+<div class="stat" style="margin-top:10px">🏛️ Conglomerado Planetário<br>Custo: 56.000.000<br>Retorno: 630.000 - 1.080.000 / 30s<button onclick="comprarCasa('Conglomerado Planetário',56000000,[630000,1080000])">Comprar</button></div>
+<div class="stat" style="margin-top:10px">🌙 Colônia Lunar<br>Custo: 96.000.000<br>Retorno: 1.080.000 - 2.700.000 / 30s<button onclick="comprarCasa('Colônia Lunar',96000000,[1080000,2700000])">Comprar</button></div>
+<div class="stat" style="margin-top:10px">🚀 Estação Espacial<br>Custo: 2.000.000.000<br>Retorno: 15.000.000 / 30s<button onclick="comprarCasa('Estação Espacial',2000000000,15000000)">Comprar</button></div> 
 
 <button onclick="voltar()">⬅ Voltar</button>
 </div>
@@ -254,8 +255,49 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <h2>🖼️ Galeria</h2>
 <button onclick="mostrarGaleria('veiculos')">Veículos</button>
 <button onclick="mostrarGaleria('casas')">Casas</button>
+<button onclick="mostrarGaleria('itens')">Itens</button>
 <div id="listaGaleria" style="margin-top:15px"></div>
 <button onclick="voltar()">⬅ Voltar</button>
+</div>
+
+<div class="card hidden" id="rankings">
+  <h2>🏆 Rankings</h2>
+  <div style="display:flex;gap:8px">
+    <button onclick="mostrarRankingsTab('money')">Dinheiro</button>
+    <button onclick="mostrarRankingsTab('time')">Tempo</button>
+  </div>
+  <div id="rankList" style="margin-top:12px"></div>
+  <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end">
+    <button onclick="submitToLeaderboards()">Enviar para Ranking</button>
+    <button onclick="renderRankingTab(currentRankingTab||'money')">Atualizar</button>
+    <button onclick="voltar()">⬅ Voltar</button>
+  </div>
+  <div id="rankNote" style="margin-top:10px;color:#ccc;font-size:13px"></div>
+</div>
+
+<div class="card hidden" id="settings">
+  <h2>⚙️ Configurações</h2>
+  <div id="settingsContent" style="margin-top:12px">
+    <div>Nome: <strong id="settingsName">-</strong></div>
+    <div>Dinheiro: <strong id="settingsMoney">0</strong></div>
+    <div style="margin-top:8px"><label><input type="checkbox" id="optOutCheckbox" /> Excluir-me dos Rankings (opt-out)</label></div>
+  </div>
+  <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end">
+    <button onclick="voltar()">⬅ Voltar</button>
+  </div>
+</div>
+  <h2>🏆 Rankings</h2>
+  <div style="display:flex;gap:8px">
+    <button onclick="mostrarRankingsTab('money')">Dinheiro</button>
+    <button onclick="mostrarRankingsTab('time')">Tempo</button>
+  </div>
+  <div id="rankList" style="margin-top:12px"></div>
+  <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end">
+    <button onclick="submitToLeaderboards()">Enviar para Ranking</button>
+    <button onclick="renderRankingTab(currentRankingTab||'money')">Atualizar</button>
+    <button onclick="voltar()">⬅ Voltar</button>
+  </div>
+  <div id="rankNote" style="margin-top:10px;color:#ccc;font-size:13px"></div>
 </div>
 
 <div class="card hidden" id="atualizacoesFeitas">
@@ -313,6 +355,22 @@ let veiculosComprados=[],casasCompradas=[],isInvesting=false;
 let prestigeShop = { autoClicker:false, passiveBoost:false, passiveSpeedCount:0, discount:false, globalMultiplier:false };
 let passiveIntervalMs = 30000; let passiveIntervalId = null; let autoClickerIntervalId = null;
 
+// Gallery & item system
+let galleryItems = []; // itens especiais (ex: Cofre de Ouro)
+let permanentItemBonuses = { passive: 0, click: 0 }; // bônus permanentes obtidos por itens
+let activeBuffs = []; // buffs temporários (ex: poção de +25% clique com expiracao)
+
+// Player profile & rankings
+let playerName = '';
+let playerNameSet = false; // marca que já perguntamos o nome (apenas uma vez)
+let playTimeMs = 0; // tempo total jogado em ms (incrementado a cada segundo)
+let sessionStart = Date.now();
+let leaderboards = { money: [], time: [] };
+let chosenNames = []; // nomes já escolhidos (únicos)
+let playerOptOut = false; // se true, o usuário não entra nos rankings
+let currentRankingTab = 'money';
+
+
 // ==========================
 // Parâmetros de mercado (fácil de alterar)
 // ==========================
@@ -341,10 +399,12 @@ let tradeStartPrice = 0, tradeStake = 0, tradeDir = null;
 function atualizar(){
   money.innerText = dinheiro.toLocaleString();
   const mult = getPrestigeMultiplier();
-  // renda por clique: mostra base e efetiva com bônus
-  income.innerHTML = `${renda} <small style="color:#ccc">(+${Math.round((mult-1)*100)}% → ${Math.floor(renda*mult)})</small>`;
+  // renda por clique: mostra base e efetiva com bônus (inclui bônus permanentes de itens)
+  const clickMultTotal = mult * (1 + (permanentItemBonuses.click || 0));
+  income.innerHTML = `${renda} <small style="color:#ccc">(+${Math.round((clickMultTotal-1)*100)}% → ${Math.floor(renda*clickMultTotal)})</small>`;
   level.innerText = nivel;
-  passive.innerHTML = `${rendaPassiva.toLocaleString()} <small style="color:#ccc">(+${Math.round((mult-1)*100)}% → ${Math.floor(rendaPassiva*mult).toLocaleString()})</small>`;
+  const passiveMultTotal = mult * (1 + (permanentItemBonuses.passive || 0));
+  passive.innerHTML = `${rendaPassiva.toLocaleString()} <small style="color:#ccc">(+${Math.round((passiveMultTotal-1)*100)}% → ${Math.floor(rendaPassiva*passiveMultTotal).toLocaleString()})</small>`;
   renderPrestigios();
   updateEndgameUnlocks();
   // Mostrar custo ou indicar que chegou ao nível máximo
@@ -578,8 +638,9 @@ function ganharDinheiro(){
   // escala de clique ajustada: aumenta mais devagar com o nível para evitar valores excessivos (ex: lvl100 → ~6x)
   const levelMul = 1 + Math.floor(nivel / 20); // +1 a cada 20 níveis (lvl100 → 6x)
   const globalMul = prestigeShop.globalMultiplier ? 1.10 : 1;
-  const amount = Math.floor(renda * levelMul * getPrestigeMultiplier() * globalMul);
+  const amount = Math.floor(renda * levelMul * getPrestigeMultiplier() * globalMul * getClickBuffMultiplier());
   dinheiro += amount;
+  salvar(true); // persistir imediatamente após clique para evitar perdas
   atualizar();
 }
 function upgrade(){
@@ -691,7 +752,7 @@ function comprarCasa(name,c,r){
   } else alert('Dinheiro insuficiente');
 }
 function comprarVeiculo(n,p){ const price = applyDiscount(p); if(dinheiro>=price){dinheiro-=price;veiculosComprados.push({nome:n,preco:price});atualizar();}else alert('Dinheiro insuficiente'); } 
-function abrir(id){painelPrincipal.classList.add('hidden');document.getElementById(id).classList.remove('hidden');}
+function abrir(id){painelPrincipal.classList.add('hidden');document.getElementById(id).classList.remove('hidden'); if(id === 'loja') mostrarLojaTab('veiculos'); }
 function voltar(){document.querySelectorAll('.card').forEach(c=>c.classList.add('hidden'));painelPrincipal.classList.remove('hidden');}
 function mostrarGaleria(t){
   let h='';
@@ -699,8 +760,63 @@ function mostrarGaleria(t){
     veiculosComprados.forEach(v=>h+=`🚗 ${v.nome} - ${v.preco}<br>`);
   } else if(t==='casas'){
     casasCompradas.forEach(c=>h+=`🏠 ${c.nome} - ${c.preco}<br>`);
+  } else if(t==='itens'){
+    galleryItems.forEach(it=>{
+      if(it.type === 'cofre') h += `🗝️ ${it.name} — adquirido em ${new Date(it.ts).toLocaleString()}<br>`;
+      else h += `${it.name ? it.name : it.type}<br>`;
+    });
   }
-  listaGaleria.innerHTML = h || 'Nada comprado';
+  listaGaleria.innerHTML = h || 'Nenhum item registrado';
+}
+
+function mostrarLojaTab(tab){
+  const v = document.getElementById('lojaVeiculos');
+  const c = document.getElementById('lojaCaixas');
+  if(tab === 'veiculos'){ v.classList.remove('hidden'); c.classList.add('hidden'); }
+  else { v.classList.add('hidden'); c.classList.remove('hidden'); }
+}
+
+// buyBox: cost 5,000,000 — probabilities: 60% 500k, 35% potion +25% clique (2min), 4.5% 250k, 0.5% cofre de ouro
+function buyBox(){
+  const cost = 5000000;
+  if(dinheiro < cost) return alert('Dinheiro insuficiente para comprar a caixa');
+  dinheiro -= cost; atualizar();
+  const r = Math.random() * 100;
+  const resultEl = document.getElementById('boxResult');
+  if(r < 60){ dinheiro += 500000; resultEl.innerText = 'Você ganhou 500.000!'; }
+  else if(r < 95){ // 60 + 35
+    const expires = Date.now() + 2*60*1000; // 2 minutos
+    // não empilhar: se já houver um buff 'click', renovamos/atualizamos; caso contrário, criamos
+    const existing = activeBuffs.find(b => b.type === 'click');
+    if(existing){ existing.mul = 0.25; existing.expires = expires; }
+    else { activeBuffs.push({type:'click', mul:0.25, expires:expires}); }
+    resultEl.innerText = 'Você ganhou uma Poção: +25% renda por clique por 2 minutos! (não acumulativa)';
+  }
+  else if(r < 99.5){ dinheiro += 250000; resultEl.innerText = 'Você ganhou 250.000!'; }
+  else { // cofre de ouro
+    const it = {type:'cofre', name:'Cofre de Ouro', ts: Date.now()};
+    galleryItems.push(it);
+    // aplicar bônus permanente
+    permanentItemBonuses.passive = (permanentItemBonuses.passive || 0) + 0.20;
+    permanentItemBonuses.click = (permanentItemBonuses.click || 0) + 0.10;
+    resultEl.innerText = 'Você encontrou um Cofre de Ouro! Ele foi adicionado à sua Galeria.';
+    addLog('Cofre de Ouro adquirido — +20% renda passiva (permanente), +10% renda por clique (permanente)');
+  }
+  salvar(true); atualizar();
+}
+
+// cleanup buffs (remove expired)
+function cleanupBuffs(){
+  const now = Date.now();
+  activeBuffs = activeBuffs.filter(b => !b.expires || b.expires > now);
+}
+
+function getClickBuffMultiplier(){
+  cleanupBuffs();
+  // Não acumulamos buffs de poção; consideramos apenas o maior multiplicador ativo
+  const clickBuffs = activeBuffs.filter(b => b.type === 'click' && b.mul);
+  const maxMul = clickBuffs.reduce((m,b)=> Math.max(m, b.mul || 0), 0);
+  return 1 + (permanentItemBonuses.click || 0) + maxMul;
 }
 
 // (Trecho antigo de trade removido — trade agora usa o motor de mercado contínuo)
@@ -717,8 +833,8 @@ function setupPassiveInterval(){
     // aplicar renda passiva com multiplicadores (prestígio e compra global)
     const globalMul = prestigeShop.globalMultiplier ? 1.10 : 1;
     const passiveBoostMul = prestigeShop.passiveBoost ? 1.20 : 1;
-    const ganho = Math.floor(rendaPassiva * getPrestigeMultiplier() * passiveBoostMul * globalMul);
-    dinheiro += ganho;
+    const ganho = Math.floor(rendaPassiva * getPrestigeMultiplier() * passiveBoostMul * globalMul * (1 + (permanentItemBonuses.passive || 0)));
+    dinheiro += ganho; // incluir bônus permanentes de itens (ex: Cofre de Ouro)
     // aplicar juros do empréstimo apenas enquanto o jogo está ativo
     if(emprestimo > 0){
       emprestimo = Math.ceil(emprestimo * (1 + emprestimoTaxa));
@@ -728,6 +844,8 @@ function setupPassiveInterval(){
 }
 // iniciar intervalo padrão
 setupPassiveInterval();
+// acompanhar tempo de jogo total
+setInterval(()=>{ playTimeMs += 1000; }, 1000);
 
 let __lastSaveAt = 0; const __saveThrottleMs = 2000; // limite mínimo entre gravações
 let __saveCorrupted = false;
@@ -755,6 +873,12 @@ function salvar(force = false){
     emprestimoTakenAt,
     prestigeShop,
     passiveIntervalMs,
+    galleryItems,
+    permanentItemBonuses,
+    activeBuffs,
+    playerName,
+    playTimeMs,
+    playerOptOut,
     lastSave: Date.now()
   };
   try{
@@ -766,6 +890,8 @@ function salvar(force = false){
     if(el) el.innerText = 'Último save: ' + new Date(__lastSaveAt).toLocaleString();
     // para depuração silenciosa
     console.info('Save salvo em', new Date(__lastSaveAt).toISOString());
+    // envio automático para rankings ao salvar forçado, respeitando opt-out
+    if(playerName && !playerOptOut && force){ try{ autoUpdateRankings(); }catch(e){ console.warn('Erro no autoUpdateRankings', e); } }
   }catch(e){
     console.error('Erro ao salvar', e);
     alert('Não foi possível salvar localmente: ' + (e && e.message ? e.message : e));
@@ -800,10 +926,18 @@ function carregar(){
     // carregar loja de prestígios e intervalos
     prestigeShop = s.prestigeShop || prestigeShop;
     passiveIntervalMs = s.passiveIntervalMs || passiveIntervalMs;
-
-    priceHistory = Array(historyMax).fill(marketPriceVal);
-    setupPassiveInterval();
+    // carregar itens e buffs
+    galleryItems = s.galleryItems || galleryItems;
+    permanentItemBonuses = s.permanentItemBonuses || permanentItemBonuses;
+    activeBuffs = (s.activeBuffs || []).filter(b => !b.expires || b.expires > Date.now());
+    playerOptOut = !!s.playerOptOut;
     if(prestigeShop.autoClicker) startAutoClicker();
+
+    // carregar nome do jogador e tempo de jogo (se existir)
+    playerName = typeof s.playerName === 'string' ? s.playerName : '';
+    playerNameSet = !!s.playerName || !!localStorage.getItem('playerNameChosen');
+    playTimeMs = s.playTimeMs || 0;
+    sessionStart = Date.now();
 
     /* ===== GANHOS OFFLINE ===== */
     if(s.lastSave){
@@ -820,6 +954,12 @@ function carregar(){
 
     // atualiza timestamp para prevenir exploit
     salvar(true);
+
+    // perguntar nome do jogador apenas uma vez (se ainda não tivermos perguntado)
+    if(!localStorage.getItem('playerNameChosen') && !playerName){ ensurePlayerName(); }
+    // carregar leaderboards locais e mostrar página padrão
+    loadLeaderboards();
+    renderRankingTab('money');
 
   }catch(e){
     console.warn('Save inválido', e);
@@ -848,24 +988,7 @@ function exportarSave(){
   }catch(e){ console.error('Erro ao exportar', e); alert('Erro ao exportar: ' + (e && e.message ? e.message : e)); }
 }
 
-function showSaveDebug(){
-  try{
-    const keys = [];
-    for(let i=0;i<localStorage.length;i++) keys.push(localStorage.key(i));
-    const raw = localStorage.getItem('save');
-    let parsed = null;
-    try{ parsed = JSON.parse(raw); }catch(e){ /* keep raw */ }
-    console.group('Save Debug');
-    console.log('Chaves em localStorage:', keys);
-    console.log('save (raw):', raw);
-    console.log('save (parsed):', parsed);
-    console.groupEnd();
-    let msg = 'Chaves em localStorage:\n' + keys.join('\n') + '\n\n';
-    msg += 'save (raw):\n' + (raw ? raw.substring(0,200) + (raw.length>200 ? '\n... (truncado)' : '') : 'vazio') + '\n\n';
-    msg += 'Abra o Console (F12) para ver detalhes completos.';
-    alert(msg);
-  }catch(e){ console.error('Erro em showSaveDebug', e); alert('Erro ao inspecionar save: ' + e.message); }
-} 
+ 
 function importarSave(e){
   const f = e.target.files[0]; if(!f) return;
   const r = new FileReader();
@@ -875,6 +998,15 @@ function importarSave(e){
       dinheiro = s.dinheiro || 0; renda = s.renda || 1; nivel = s.nivel || 1; rendaPassiva = s.rendaPassiva || 0; custoUpgrade = s.custoUpgrade || 100;
       veiculosComprados = s.veiculosComprados || []; casasCompradas = s.casasCompradas || [];
       marketPriceVal = s.marketPriceVal || initialPrice; priceHistory = Array(historyMax).fill(marketPriceVal);
+      galleryItems = s.galleryItems || [];
+      permanentItemBonuses = s.permanentItemBonuses || {passive:0,click:0};
+      activeBuffs = (s.activeBuffs || []).filter(b => !b.expires || b.expires > Date.now());
+      playerName = s.playerName || '';
+      if(s.playerName) localStorage.setItem('playerNameChosen','1');
+      // registrar nome importado como escolhido (único localmente)
+      if(playerName){ loadChosenNames(); if(!chosenNames.some(n=>n.toLowerCase()===playerName.toLowerCase())){ chosenNames.push(playerName); saveChosenNames(); } }
+      playerOptOut = !!s.playerOptOut;
+      playTimeMs = s.playTimeMs || 0;
       salvar(true); atualizar(); alert('Save importado com sucesso!');
     }catch(err){ alert('Arquivo inválido'); }
   };
@@ -882,6 +1014,93 @@ function importarSave(e){
 }
 function apagarSave(){if(confirm('Apagar save?')){localStorage.removeItem('save');dinheiro=0;renda=1;nivel=1;rendaPassiva=0;custoUpgrade=100;prestigios=0;veiculosComprados=[];casasCompradas=[];marketPriceVal = initialPrice; priceHistory = Array(historyMax).fill(marketPriceVal); // reset loan state as well
     emprestimo = 0; emprestimoTakenAt = 0; emprestimoTaxa = 0.02; atualizar();alert('Save apagado e dívida zerada');} }
+
+// ------------------
+// Player & Rankings
+// ------------------
+function ensurePlayerName(){
+  // perguntar apenas uma vez por usuário (persistido em localStorage)
+  if(localStorage.getItem('playerNameChosen')) return;
+  loadChosenNames();
+  while(true){
+    const name = prompt('Bem-vindo! Escolha seu nome (apenas uma vez):');
+    if(name === null){ playerName = ''; localStorage.setItem('playerNameChosen','1'); salvar(true); return; }
+    const trimmed = name.trim().substring(0,20);
+    if(!trimmed){ alert('Nome inválido. Tente novamente.'); continue; }
+    // unicidade case-insensitive
+    const exists = chosenNames.some(n => n.toLowerCase() === trimmed.toLowerCase());
+    if(exists){ alert('Nome já existe. Por favor escolha outro (ex: ' + trimmed + '1)'); continue; }
+    // válido e único
+    playerName = trimmed;
+    chosenNames.push(playerName);
+    saveChosenNames();
+    localStorage.setItem('playerNameChosen','1');
+    salvar(true);
+
+    return;
+  }
+} 
+
+function loadLeaderboards(){
+  try{ leaderboards = JSON.parse(localStorage.getItem('leaderboards') || '{"money":[],"time":[]}'); }catch(e){ leaderboards = {money:[], time:[]}; }
+}
+function saveLeaderboards(){ localStorage.setItem('leaderboards', JSON.stringify(leaderboards)); }
+
+function loadChosenNames(){
+  try{ chosenNames = JSON.parse(localStorage.getItem('chosenNames') || '[]'); }catch(e){ chosenNames = []; }
+}
+function saveChosenNames(){ localStorage.setItem('chosenNames', JSON.stringify(chosenNames)); }
+
+function submitToLeaderboards(){
+  if(!playerName){ ensurePlayerName(); if(!playerName){ alert('Nome não definido; não foi possível enviar para o ranking'); return; } }
+  if(playerOptOut){ alert('Você optou por não entrar nos rankings. Desative essa opção nas Configurações para enviar.'); return; }
+  const moneyVal = dinheiro;
+  const timeVal = playTimeMs + (Date.now() - sessionStart);
+  const upsert = (arr, val)=>{
+    const idx = arr.findIndex(x=>x.name === playerName);
+    if(idx >= 0) arr[idx] = {name: playerName, val}; else arr.push({name: playerName, val});
+    arr.sort((a,b)=> b.val - a.val);
+    if(arr.length>10) arr.length = 10; // manter top 10
+  };
+  upsert(leaderboards.money, moneyVal);
+  upsert(leaderboards.time, timeVal);
+  saveLeaderboards();
+  renderRankingTab(currentRankingTab||'money');
+  alert('Enviado para rankings!');
+}
+
+function mostrarRankingsTab(tab){ document.getElementById('rankings').classList.remove('hidden'); document.getElementById('loja').classList.add('hidden'); mostrarLojaTab('veiculos'); renderRankingTab(tab); }
+
+function renderRankingTab(tab){ currentRankingTab = tab || 'money'; const el = document.getElementById('rankList'); if(!el) return; const items = (leaderboards[tab]||[]).slice(0,10); let h = '<ol>'; items.forEach(it=>{ const val = tab === 'money' ? (it.val).toLocaleString() : formatTime(it.val); h += `<li>${escapeHtml(it.name)} — ${val}</li>`; }); h += '</ol>'; el.innerHTML = h; renderSettings(); const noteEl = document.getElementById('rankNote'); if(noteEl){ noteEl.innerText = playerName ? `Seu nome: ${playerName} (definido apenas uma vez).` : 'Você ainda não definiu um nome.'; } }
+
+function renderSettings(){ const nameEl = document.getElementById('settingsName'); const moneyEl = document.getElementById('settingsMoney'); const chk = document.getElementById('optOutCheckbox'); if(nameEl) nameEl.innerText = playerName || '-'; if(moneyEl) moneyEl.innerText = (dinheiro || 0).toLocaleString(); if(chk){ chk.checked = !!playerOptOut; chk.onchange = toggleOptOut; } }
+
+function toggleOptOut(){ playerOptOut = !!document.getElementById('optOutCheckbox').checked; salvar(true); if(playerOptOut){ removePlayerFromLeaderboards(); saveLeaderboards(); renderRankingTab(currentRankingTab||'money'); } }
+
+function removePlayerFromLeaderboards(){ if(!playerName) return; ['money','time'].forEach(k=>{ leaderboards[k] = (leaderboards[k]||[]).filter(x=> x.name.toLowerCase() !== playerName.toLowerCase()); }); }
+
+function autoUpdateRankings(){ // executa a cada 2 minutos
+  if(!playerName || playerOptOut) return;
+  loadLeaderboards();
+  const moneyVal = dinheiro;
+  const timeVal = playTimeMs + (Date.now() - sessionStart);
+  const upsert = (arr, val)=>{
+    const idx = arr.findIndex(x=>x.name === playerName);
+    if(idx >= 0) arr[idx] = {name: playerName, val}; else arr.push({name: playerName, val});
+    arr.sort((a,b)=> b.val - a.val);
+    if(arr.length>10) arr.length = 10;
+  };
+  upsert(leaderboards.money, moneyVal);
+  upsert(leaderboards.time, timeVal);
+  saveLeaderboards();
+  renderRankingTab(currentRankingTab||'money');
+}
+
+// iniciar auto-update a cada 2 minutos
+setInterval(autoUpdateRankings, 2*60*1000);
+
+function formatTime(ms){ const s = Math.floor(ms/1000); const h = Math.floor(s/3600); const m = Math.floor((s%3600)/60); const sec = s%60; return (h>0?h+'h ':'') + (m>0?m+'m ':'') + sec+'s'; }
+function escapeHtml(str){ return String(str).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
 /* Tutorial inicial (mostra apenas na primeira vez) */
 const tutorialSteps = [
@@ -1167,6 +1386,11 @@ initDevTools();
 carregar();
 // inicializa logs (chama uma vez ao carregar)
 initLogs();
+
+// carregar listas locais e iniciar auto-update de rankings
+loadChosenNames(); loadLeaderboards();
+// disparar uma atualização imediata (e depois a cada 2 minutos)
+autoUpdateRankings();
 
 startMarket();
 atualizar();
