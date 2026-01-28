@@ -1,1457 +1,1032 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head><!-- Google tag (gtag.js) -->
+<head>
+<!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-H81BYYMM81"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-
   gtag('config', 'G-H81BYYMM81');
 </script>
 <meta charset="UTF-8">
-<title>Simulação de Negócios</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulação de Negócios 2.1</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <style>
-body{margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);color:#fff}
-header{text-align:center;padding:20px;background:rgba(0,0,0,.3)}
-main{padding:25px;max-width:1200px;margin:auto}
-.card{background:rgba(255,255,255,.08);border-radius:12px;padding:20px;margin-bottom:20px;box-shadow:0 10px 30px rgba(0,0,0,.3)}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px}
-.stat{background:rgba(0,0,0,.35);padding:15px;border-radius:10px;text-align:center}
-button{padding:12px;border:none;border-radius:8px;cursor:pointer;background:#00c6ff;font-weight:bold;width:100%;margin-top:10px}
-button:hover{background:#00a8dd}
-button:disabled{opacity:.55;cursor:not-allowed}
-.hidden{display:none} 
-/* --- Tutorial overlay styles --- */
-#tutorialOverlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;z-index:9999}
-#tutorialOverlay.hidden{display:none}
-#tutorialBox{background:linear-gradient(180deg,#1b2630,#12212a);padding:20px;border-radius:12px;width:90%;max-width:700px;color:#fff;box-shadow:0 20px 60px rgba(0,0,0,.6)}
-#tutorialSteps{min-height:80px}
-.tutorialNav{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
-.tutorialBtn{background:#00c6ff;color:#002a33;padding:8px 12px;border-radius:8px;border:none;cursor:pointer;font-weight:bold}
-.tutorialBtn.secondary{background:#fff;color:#002a33}
-#tutorialProgress{font-size:13px;color:#ccc;margin-bottom:8px}
-/* ------------------------------- */
-.arrows{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:10px}
-.arrow{width:50px;height:50px;border-radius:50%;font-size:20px}
-#graph{height:200px;background:#000;margin-top:15px;position:relative;overflow:hidden}
-#chart{width:100%;height:200px;background:#000;border-radius:6px;display:block}
-.trendUp{color:#0f0}
-.trendDown{color:#f33}
-.trendNeutral{color:#ccc}
-#tradeInfo{background:rgba(255,255,255,0.03);border-radius:8px}
-#closeTrade{width:100%}
-/* O canvas é desenhado por JS; a linha muda de cor conforme a direção atual */ 
+:root {
+    --primary: #00c6ff;
+    --secondary: #0072ff;
+    --bg-dark: #121212;
+    --bg-card: #1e1e1e;
+    --text-main: #ffffff;
+    --text-muted: #b0b3b8;
+    --success: #00e676;
+    --danger: #ff5252;
+    --nav-height: 60px;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body {
+    margin: 0; padding: 0;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg-dark);
+    color: var(--text-main);
+    padding-bottom: calc(var(--nav-height) + 20px);
+    overflow-x: hidden;
+}
 
-/* --- Announcement & Changelog styles --- */
-.announcement{background:linear-gradient(90deg,#ffb347,#ffcc33);color:#002a33;padding:10px;border-radius:8px;margin:12px auto;max-width:1200px;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.25)}
-.announcement .actions{margin-top:6px;display:flex;gap:8px;justify-content:center}
-.announcement button{background:rgba(0,0,0,0.08);border:none;padding:6px 10px;border-radius:6px;cursor:pointer}
-.changelog{max-width:1200px;margin:12px auto;padding:12px;background:rgba(255,255,255,0.04);border-radius:10px}
-.changelog-list{display:flex;flex-direction:column;gap:8px}
-.changelog-item{background:rgba(0,0,0,0.25);padding:10px;border-radius:8px}
-.changelog-new{display:inline-block;background:#00c853;color:#002a33;padding:4px 8px;border-radius:6px;font-weight:bold;margin-right:8px}
-.log-btn{background:#00c6ff;color:#002a33;border:none;padding:8px 10px;border-radius:8px;cursor:pointer}
-.log-btn.secondary{background:#fff;color:#002a33}
+/* --- Header --- */
+header {
+    background: linear-gradient(135deg, #1c1c1c, #2a2a2a);
+    padding: 15px 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    position: sticky; top: 0; z-index: 100;
+    display: flex; justify-content: space-between; align-items: center;
+}
+h1 { margin: 0; font-size: 1.2rem; background: -webkit-linear-gradient(var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.save-status { font-size: 0.75rem; color: var(--text-muted); }
 
-.endgame.locked{opacity:0.6;filter:grayscale(50%)}
-.stat.endgame button{min-width:120px}
+/* --- Main Layout --- */
+main { max-width: 800px; margin: 0 auto; padding: 15px; }
 
-/* Dev panel */
-.dev-panel{position:fixed;left:12px;bottom:12px;background:rgba(0,0,0,0.85);color:#fff;padding:12px;border-radius:8px;z-index:99999;box-shadow:0 8px 30px rgba(0,0,0,0.6);width:340px;font-size:13px}
-.dev-panel h4{margin:0 0 8px 0;font-size:14px}
-.dev-panel input, .dev-panel select{width:100%;padding:6px;margin:6px 0;border-radius:6px;border:none}
-.dev-panel .row{display:flex;gap:8px}
-.dev-panel button{flex:1;padding:8px;border-radius:6px;border:none;background:#00c6ff;color:#002a33;cursor:pointer}
-.dev-panel .small{font-size:12px;color:#ccc}
+/* --- Cards & Sections --- */
+.view-section { display: none; animation: fadeIn 0.3s ease; }
+.view-section.active { display: block; }
 
+.card {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.05);
+}
+.card h2 { margin-top: 0; font-size: 1.1rem; color: var(--primary); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; }
+
+/* --- Announcement Ticker --- */
+.announcement {
+    background: linear-gradient(90deg, #2c3e50, #000);
+    border-left: 4px solid var(--primary);
+    transition: background-color 0.3s;
+}
+#newsTicker { font-style: italic; color: #ddd; font-size: 0.9rem; }
+
+/* --- Dashboard Stats --- */
+.stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.stat-box { background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; text-align: center; }
+.stat-label { font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px; }
+.stat-value { font-size: 1.1rem; font-weight: bold; color: #fff; }
+.money-highlight { color: var(--success); font-size: 1.3rem; }
+
+/* --- Buttons --- */
+button {
+    background: linear-gradient(90deg, var(--secondary), var(--primary));
+    color: #fff;
+    border: none; padding: 12px;
+    border-radius: 8px; cursor: pointer;
+    font-weight: 600; width: 100%;
+    transition: transform 0.1s, opacity 0.2s;
+    margin-top: 5px;
+}
+button:active { transform: scale(0.98); }
+button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(100%); }
+button.secondary-btn { background: rgba(255,255,255,0.1); color: var(--text-muted); }
+button.danger-btn { background: var(--danger); }
+button.buy-btn { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; text-align: left; }
+
+/* --- Navigation Bar --- */
+.bottom-nav {
+    position: fixed; bottom: 0; left: 0; width: 100%;
+    height: var(--nav-height);
+    background: #1a1a1a;
+    display: flex; justify-content: space-around; align-items: center;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+}
+.nav-item {
+    color: var(--text-muted);
+    text-align: center;
+    font-size: 0.7rem;
+    cursor: pointer;
+    flex: 1;
+    padding: 8px 0;
+    position: relative;
+    transition: color 0.3s;
+}
+.nav-item.active { color: var(--primary); }
+.nav-icon { font-size: 1.4rem; display: block; margin-bottom: 2px; }
+.notification-dot {
+    position: absolute; top: 5px; right: 25%;
+    width: 8px; height: 8px;
+    background: var(--danger);
+    border-radius: 50%;
+    display: none;
+}
+
+/* --- Specific Modules --- */
+/* Trade */
+#graph-container { position: relative; height: 220px; background: #000; border-radius: 8px; overflow: hidden; margin-bottom: 10px; }
+.trade-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.leverage-selector { display: flex; gap: 5px; margin: 10px 0; justify-content: center; }
+.lev-btn { background: #333; padding: 5px 10px; font-size: 0.8rem; }
+.lev-btn.selected { background: var(--primary); color: #000; }
+
+/* Ranking */
+.ranking-list { list-style: none; padding: 0; margin: 0; }
+.ranking-item { 
+    display: flex; justify-content: space-between; 
+    padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); 
+    align-items: center;
+}
+.ranking-item:nth-child(1) .rank-pos { color: #ffd700; font-size: 1.2rem; }
+.ranking-item:nth-child(2) .rank-pos { color: #c0c0c0; font-size: 1.1rem; }
+.ranking-item:nth-child(3) .rank-pos { color: #cd7f32; font-size: 1.1rem; }
+.ranking-item.is-player { background: rgba(0, 198, 255, 0.1); border-left: 3px solid var(--primary); }
+
+/* Tabs inside sections */
+.sub-tabs { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+.sub-tab-btn { background: none; border: none; color: #777; padding: 8px 15px; width: auto; font-size: 0.9rem; border-radius: 20px; }
+.sub-tab-btn.active { background: rgba(255,255,255,0.1); color: #fff; }
+
+/* Tutorial & Overlay */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; display: flex; justify-content: center; align-items: center; }
+.hidden { display: none !important; }
+.modal { background: var(--bg-card); width: 90%; max-width: 500px; padding: 20px; border-radius: 12px; position: relative; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 </head>
 <body>
+
 <header>
-<h1>💼 Simulador de Negócios</h1>
-<p>Sistemas avançados</p>
-<div id="saveStatus" style="font-size:12px;color:#ccc;margin-top:6px">Último save: —</div>
+    <div>
+        <h1>💼 Business Sim 2.1</h1>
+        <div id="saveStatus" class="save-status">Carregando...</div>
+    </div>
+    <div style="text-align:right">
+        <span class="stat-label">Nível</span>
+        <strong id="headerLevel">1</strong>
+    </div>
 </header>
-<!-- Announcement bar -->
-<!-- Dev/testing panel (visible with ?dev=1 or Ctrl+Shift+D) -->
-<div id="devPanel" class="dev-panel" style="display:none">
-  <h4>Dev Panel</h4>
-  <label>Dinheiro</label>
-  <input id="devMoneyInput" type="number" placeholder="1000">
-  <div class="row"><button onclick="devAddMoney()">Adicionar</button><button onclick="devReset()">Reset</button></div>
-
-  <label>Prestígios</label>
-  <input id="devPrestigeInput" type="number" placeholder="1">
-  <div class="row"><button onclick="devAddPrestige()">Adicionar</button><button onclick="devSetPrestige(0)">Zerar</button></div>
-
-  <label>Nível</label>
-  <input id="devLevelInput" type="number" placeholder="1">
-  <div class="row"><button onclick="devSetLevel()">Setar</button><button onclick="devAddMoney(10000)">+10k</button></div>
-
-  <hr style="border:none;border-top:1px solid rgba(255,255,255,0.06);margin:8px 0">
-  <label>Dar Veículo (nome)</label>
-  <input id="devVehicleName" placeholder="Nome do veículo">
-  <label>Preço</label>
-  <input id="devVehiclePrice" type="number" placeholder="1000">
-  <div class="row"><button onclick="devGiveVehicle()">Dar veículo</button><button onclick="devGiveVehiclesPreset()">Dar 3 veículos</button></div>
-
-  <label>Dar Casa (nome)</label>
-  <input id="devHouseName" placeholder="Nome da casa">
-  <label>Preço</label>
-  <input id="devHousePrice" type="number" placeholder="10000">
-  <div class="row"><button onclick="devGiveHouse()">Dar casa</button><button onclick="devGiveHousesPreset()">Dar 3 casas</button></div>
-
-  <div style="margin-top:8px" class="small">Atalho: Ctrl+Shift+D — ou abra com ?dev=1</div>
-</div>
-<div id="announcementBar" class="announcement">
-  <strong>Novo!</strong> Novo sistema AFK — registra seus ganhos com renda passiva
-  <div class="actions">
-    <button onclick="abrir('atualizacoesFeitas')">Ver Atualizações</button>
-    <button onclick="dismissAnnouncement()" class="log-btn secondary">Fechar</button>
-  </div>
-</div>
 
 <main>
 
-<div class="card" id="changelog">
-  <h2>📝 Atualizações</h2>
-  <div style="color:#ccc">As atualizações foram movidas para a aba <strong>🔖 Atualizações já feitas</strong>. Clique para ver o histórico completo.</div>
-  <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end">
-    <button onclick="abrir('atualizacoesFeitas')" class="log-btn">Ver atualizações</button>
-  </div>
-</div>
-
-<div class="card" id="painelPrincipal">
-<div class="stats">
-<div class="stat">💰 Dinheiro<br><strong id="money">0</strong></div>
-<div class="stat">📈 Renda / clique<br><strong id="income">1</strong></div>
-<div class="stat">🏢 Nível<br><strong id="level">1</strong></div>
-<div class="stat">🏦 Renda Passiva<br><strong id="passive">0</strong></div>
-<div class="stat">🏅 Medalhas<br><strong id="medals">0</strong></div>
-<div class="stat">💸 Empréstimo<br><strong id="loan">0</strong></div>
-</div>
-<button onclick="ganharDinheiro()">Ganhar dinheiro</button>
-  <button id="upgradeBtn" onclick="upgrade()">Upgrade (custo <span id="upgradeCost">100</span>)</button>
-<button onclick="abrir('investimentos')">Investimentos</button>
-<button onclick="abrir('emprestimos')">💸 Empréstimos</button>
-<button onclick="abrir('graficos')">Gráficos</button>
-<button onclick="abrir('loja')">Loja</button>
-<button onclick="abrir('galeria')">Galeria</button>
-<button onclick="abrir('rankings')">🏆 Rankings</button>
-<button onclick="abrir('settings')">⚙️ Configurações</button>
-<button onclick="abrir('atualizacoesFeitas')">📜 Atualizações</button>
-<button onclick="abrir('prestigios')">🏅 Prestígios</button>
-<button onclick="salvar(true)">💾 Salvar Agora</button>
-<button onclick="exportarSave()">⬇️ Exportar Save</button>
-<input id="importFile" class="hidden" type="file" accept="application/json" onchange="importarSave(event)">
-<button onclick="document.getElementById('importFile').click()">⬆️ Importar Save</button>
-<button onclick="apagarSave()">🗑️ Apagar Save</button>
-<button onclick="showTutorial(true)">🎓 Tutorial</button>
-</div>
-
-<div class="card hidden" id="investimentos">
-<h2>🏦 Investimentos</h2>
-<div class="stat">🏠 Casa Alugada<br>Custo: 5.000<br>Retorno: +50 / 30s<button onclick="comprarInvestimento(5000,50)">Comprar</button></div>
-<div class="stat" style="margin-top:10px">🏪 Loja<br>Custo: 15.000<br>Retorno: +150 / 30s<button onclick="comprarInvestimento(15000,150)">Comprar</button></div>
-<div class="stat" style="margin-top:10px">🏢 Prédio<br>Custo: 50.000<br>Retorno: +500 / 30s<button onclick="comprarInvestimento(50000,500)">Comprar</button></div>
-
-<!-- Novos investimentos -->
-<div class="stat" style="margin-top:10px">📈 Fundo de Ações<br>Custo: 8.000<br>Retorno: +90 / 30s<button onclick="comprarInvestimento(8000,90)">Comprar</button></div>
-<div class="stat" style="margin-top:10px">💳 Títulos Públicos<br>Custo: 20.000<br>Retorno: +220 / 30s<button onclick="comprarInvestimento(20000,220)">Comprar</button></div>
-<div class="stat" style="margin-top:10px">🪙 Criptomoeda<br>Custo: 12.000<br>Retorno: +170 / 30s<button onclick="comprarInvestimento(12000,170)">Comprar</button></div>
-<div class="stat" style="margin-top:10px">🚀 Startup<br>Custo: 60.000<br>Retorno: +650 / 30s<button onclick="comprarInvestimento(60000,650)">Comprar</button></div>
-<div class="stat" style="margin-top:10px">🏘️ Fundo Imobiliário<br>Custo: 35.000<br>Retorno: +350 / 30s<button onclick="comprarInvestimento(35000,350)">Comprar</button></div>
-
-<!-- Novas casas (compram com função dedicada para registrar na galeria) -->
-<div style="margin-top:15px"><h3>🏠 Casas</h3></div>
-<div class="stat">Casa Simples<br>Custo: 10.000<br>Retorno: +120 / 30s<button onclick="comprarCasa('Casa Simples',10000,120)">Comprar</button></div>
-<div class="stat" style="margin-top:10px">Apartamento<br>Custo: 40.000<br>Retorno: +400 / 30s<button onclick="comprarCasa('Apartamento',40000,400)">Comprar</button></div>
-<div class="stat" style="margin-top:10px">Sítio<br>Custo: 80.000<br>Retorno: +800 / 30s<button onclick="comprarCasa('Sítio',80000,800)">Comprar</button></div>
-<div class="stat" style="margin-top:10px">Cobertura<br>Custo: 200.000<br>Retorno: +2200 / 30s<button onclick="comprarCasa('Cobertura',200000,2200)">Comprar</button></div>
-<div class="stat" style="margin-top:10px">Mansão<br>Custo: 800.000<br>Retorno: +10000 / 30s<button onclick="comprarCasa('Mansão',800000,10000)">Comprar</button></div>
-
-<!-- Novas casas (não end-game) -->
-<div class="stat" style="margin-top:10px">Studio<br>Custo: 5.000<br>Retorno: +60 / 30s<button onclick="comprarCasa('Studio',5000,60)">Comprar</button></div>
-<div class="stat" style="margin-top:10px">Casa Moderna<br>Custo: 25.000<br>Retorno: +250 / 30s<button onclick="comprarCasa('Casa Moderna',25000,250)">Comprar</button></div>
-<div class="stat" style="margin-top:10px">Townhouse<br>Custo: 60.000<br>Retorno: +600 / 30s<button onclick="comprarCasa('Townhouse',60000,600)">Comprar</button></div>
-<div class="stat" style="margin-top:10px">Fazenda<br>Custo: 120.000<br>Retorno: +1300 / 30s<button onclick="comprarCasa('Fazenda',120000,1300)">Comprar</button></div>
-<div class="stat" style="margin-top:10px">Villa<br>Custo: 350.000<br>Retorno: +3800 / 30s<button onclick="comprarCasa('Villa',350000,3800)">Comprar</button></div>
-
-<div style="margin-top:15px"><h3>Casas End-Game (desbloqueadas por prestígios)</h3></div>
-<div class="stat" style="margin-top:10px">🏢 Corporação Global<br>Custo: 8.000.000<br>Retorno: 90.000 - 180.000 / 30s<button onclick="comprarCasa('Corporação Global',8000000,[90000,180000])">Comprar</button></div>
-<div class="stat" style="margin-top:10px">🏬 Império Multinacional<br>Custo: 20.000.000<br>Retorno: 225.000 - 450.000 / 30s<button onclick="comprarCasa('Império Multinacional',20000000,[225000,450000])">Comprar</button></div>
-<div class="stat" style="margin-top:10px">🏛️ Conglomerado Planetário<br>Custo: 56.000.000<br>Retorno: 630.000 - 1.080.000 / 30s<button onclick="comprarCasa('Conglomerado Planetário',56000000,[630000,1080000])">Comprar</button></div>
-<div class="stat" style="margin-top:10px">🌙 Colônia Lunar<br>Custo: 96.000.000<br>Retorno: 1.080.000 - 2.700.000 / 30s<button onclick="comprarCasa('Colônia Lunar',96000000,[1080000,2700000])">Comprar</button></div>
-<div class="stat" style="margin-top:10px">🚀 Estação Espacial<br>Custo: 2.000.000.000<br>Retorno: 15.000.000 / 30s<button onclick="comprarCasa('Estação Espacial',2000000000,15000000)">Comprar</button></div> 
-
-<button onclick="voltar()">⬅ Voltar</button>
-</div>
-
-<div class="card hidden" id="emprestimos">
-  <h2>💸 Empréstimos</h2>
-  <div class="stat">Empréstimo atual: <strong id="loanDisplay">0</strong></div>
-  <div style="margin-top:10px;color:#ccc">Taxa padrão: <strong id="loanRateDisplay">2%</strong> por ciclo (30s). Você pode pedir um empréstimo imediato e pagar parcialmente ou integralmente.</div>
-  <div id="loanCooldown" style="margin-top:8px;color:#ffd54f"></div>
-  <div style="margin-top:10px">
-    <input id="loanAmountInput" type="number" placeholder="Valor do empréstimo" style="padding:8px;border-radius:6px;border:none;width:60%">
-    <button onclick="requestLoan()" style="margin-left:8px">Pedir Empréstimo</button>
-  </div>
-  <div style="margin-top:10px">
-    <input id="loanRepayInput" type="number" placeholder="Valor para pagar" style="padding:8px;border-radius:6px;border:none;width:60%">
-    <button onclick="repayLoanInput()" style="margin-left:8px">Pagar Empréstimo</button>
-    <button onclick="repayLoan(emprestimo)" style="margin-left:8px">Pagar Tudo</button>
-  </div>
-  <div style="margin-top:10px;color:#ccc;font-size:13px">Aconselhável pagar juros rapidamente para evitar crescimento exponencial do débito.</div>
-  <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
-    <button onclick="voltar()" class="log-btn secondary">Fechar</button>
-  </div>
-</div>
-
-<div class="card hidden" id="graficos">
-<h2>📊 Mercado (alto risco)</h2>
-<p>Escolha o valor e a direção</p>
-<input id="valorInvest" type="number" placeholder="Valor para investir" style="width:100%;padding:10px;border-radius:6px;border:none">
-<div id="graph">
-  <canvas id="chart" width="800" height="200"></canvas>
-</div>
-<div id="marketInfo" style="margin-top:8px">Preço: <strong id="marketPrice">100.00</strong> | Tendência: <strong id="marketTrend">Neutro</strong> | Status: <span id="marketStatus">Pronto</span></div>
-
-<!-- Painel de informações e controle do trade -->
-<div id="tradeControls" style="margin-top:10px">
-  <div id="tradeInfo" class="stat" style="padding:10px">Nenhum trade aberto</div>
-  <button id="closeTrade" class="hidden" onclick="pararTrade()" style="background:#ff5252;color:#fff;padding:10px;border-radius:8px;margin-top:8px">Fechar Trade</button>
-  <div style="font-size:12px;color:#ccc;margin-top:6px">Clique em <strong>⬆</strong> para abrir compra (up) ou <strong>⬇</strong> para venda (down). Encerre com <strong>Fechar Trade</strong>.</div>
-</div>
-
-<div class="arrows"> 
-<button class="arrow tradeOpenBtn" onclick="investirGrafico('up')">⬆</button>
-<button class="arrow tradeOpenBtn" onclick="investirGrafico('down')">⬇</button>
-</div>  
-<div style="margin-top:10px">Resultado: <strong id="resultadoGrafico">0</strong></div>
-<button onclick="voltar()">⬅ Voltar</button>
-</div>
-
-<div class="card hidden" id="loja">
-<h2>🛒 Loja</h2>
-<div class="stat">🚗 BMW<br>Preço: 120.000<button onclick="comprarVeiculo('BMW',120000)">Comprar</button></div>
-<div class="stat" style="margin-top:10px">✈️ Avião<br>Preço: 1.000.000<button onclick="comprarVeiculo('Avião',1000000)">Comprar</button></div>
-<div class="stat" style="margin-top:10px">🏎️ Ferrari<br>Preço: 500.000<button onclick="comprarVeiculo('Ferrari',500000)">Comprar</button></div>
-<div class="stat" style="margin-top:10px">🏍️ Moto<br>Preço: 30.000<button onclick="comprarVeiculo('Moto',30000)">Comprar</button></div>
-<div class="stat" style="margin-top:10px">🚚 Caminhão<br>Preço: 250.000<button onclick="comprarVeiculo('Caminhão',250000)">Comprar</button></div>
-<div class="stat" style="margin-top:10px">⛵ Barco<br>Preço: 350.000<button onclick="comprarVeiculo('Barco',350000)">Comprar</button></div>
-<div class="stat" style="margin-top:10px">🔋 Tesla<br>Preço: 220.000<button onclick="comprarVeiculo('Tesla',220000)">Comprar</button></div>
-<!-- Novos carros adicionados -->
-<div class="stat" style="margin-top:10px">🚘 XE<br>Preço: 90.000<button onclick="comprarVeiculo('XE',90000)">Comprar</button></div>
-<div class="stat" style="margin-top:10px">🚘 BMW 320i<br>Preço: 150.000<button onclick="comprarVeiculo('BMW 320i',150000)">Comprar</button></div>
-<div class="stat" style="margin-top:10px">🚘 Audi A3<br>Preço: 110.000<button onclick="comprarVeiculo('Audi A3',110000)">Comprar</button></div>
-<div class="stat" style="margin-top:10px">🚘 Toyota Corolla<br>Preço: 80.000<button onclick="comprarVeiculo('Toyota Corolla',80000)">Comprar</button></div>
-<div class="stat" style="margin-top:10px">🚘 Honda Civic<br>Preço: 95.000<button onclick="comprarVeiculo('Honda Civic',95000)">Comprar</button></div>
-<button onclick="voltar()">⬅ Voltar</button>
-</div>
-
-<div class="card hidden" id="galeria">
-<h2>🖼️ Galeria</h2>
-<button onclick="mostrarGaleria('veiculos')">Veículos</button>
-<button onclick="mostrarGaleria('casas')">Casas</button>
-<button onclick="mostrarGaleria('itens')">Itens</button>
-<div id="listaGaleria" style="margin-top:15px"></div>
-<button onclick="voltar()">⬅ Voltar</button>
-</div>
-
-<div class="card hidden" id="rankings">
-  <h2>🏆 Rankings</h2>
-  <div style="display:flex;gap:8px">
-    <button onclick="mostrarRankingsTab('money')">Dinheiro</button>
-    <button onclick="mostrarRankingsTab('time')">Tempo</button>
-  </div>
-  <div id="rankList" style="margin-top:12px"></div>
-  <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end">
-    <button onclick="submitToLeaderboards()">Enviar para Ranking</button>
-    <button onclick="renderRankingTab(currentRankingTab||'money')">Atualizar</button>
-    <button onclick="voltar()">⬅ Voltar</button>
-  </div>
-  <div id="rankNote" style="margin-top:10px;color:#ccc;font-size:13px"></div>
-</div>
-
-<div class="card hidden" id="settings">
-  <h2>⚙️ Configurações</h2>
-  <div id="settingsContent" style="margin-top:12px">
-    <div>Nome: <strong id="settingsName">-</strong> <button onclick="definePlayerName()">Definir nome</button></div>
-    <div>Dinheiro: <strong id="settingsMoney">0</strong></div>
-    <div style="margin-top:8px"><label><input type="checkbox" id="optOutCheckbox" /> Excluir-me dos Rankings (opt-out)</label></div>
-  </div>
-  <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end">
-    <button onclick="voltar()">⬅ Voltar</button>
-  </div>
-</div>
-  <h2>🏆 Rankings</h2>
-  <div style="display:flex;gap:8px">
-    <button onclick="mostrarRankingsTab('money')">Dinheiro</button>
-    <button onclick="mostrarRankingsTab('time')">Tempo</button>
-  </div>
-  <div id="rankList" style="margin-top:12px"></div>
-  <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end">
-    <button onclick="submitToLeaderboards()">Enviar para Ranking</button>
-    <button onclick="renderRankingTab(currentRankingTab||'money')">Atualizar</button>
-    <button onclick="voltar()">⬅ Voltar</button>
-  </div>
-  <div id="rankNote" style="margin-top:10px;color:#ccc;font-size:13px"></div>
-</div>
-
-<div class="card hidden" id="atualizacoesFeitas">
-  <h2>🔖 Atualizações já feitas</h2>
-  <div id="updateLogsList" class="changelog-list"></div>
-  <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end">
-    <button onclick="markLogsRead()" class="log-btn">Marcar como lidas</button>
-    <button onclick="voltar()" class="log-btn secondary">Fechar</button>
-  </div>
-</div>
-
-<div class="card hidden" id="prestigios">
-  <h2>🏅 Prestígios</h2>
-  <div id="prestigeInfo">
-    <div>Medalhas: <strong id="prestigeCount">0</strong></div>
-    <div>Bônus atual: <strong id="prestigeBonus">0%</strong> (cada prestígio dá +2% à renda por clique e passiva)</div>
-    <div>Requisito para próximo prestígio: <strong id="prestigeReq">1.000.000</strong></div>
-    <button id="prestigeBtn" onclick="attemptPrestige()">Prestigiar (Reset)</button>
-    <div style="font-size:13px;color:#ccc;margin-top:8px">Ao prestigiar, você ganhará 1 medalha e seu progresso será resetado (dinheiro, nível, investimentos), mas manterá suas medalhas e bônus.</div>
-    <div id="medalRow" style="margin-top:10px"></div>
-    <div id="prestigePreview" style="margin-top:10px;color:#ccc"></div>
-    <hr style="border:none;border-top:1px solid rgba(255,255,255,0.06);margin-top:12px" />
-    <h3 style="margin-top:12px">🏬 Loja de Prestígios</h3>
-    <div id="prestigeShop" style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
-      <div class="changelog-item">🔁 Auto Clicker (0.5s) — Custo: <strong>2</strong> medalhas <button id="buyAutoClicker" onclick="buyPrestigeItem('autoClicker')" style="float:right">Comprar</button></div>
-      <div class="changelog-item">📈 +20% Renda Passiva (único) — Custo: <strong>2</strong> medalhas <button id="buyPassiveBoost" onclick="buyPrestigeItem('passiveBoost')" style="float:right">Comprar</button></div>
-      <div class="changelog-item">⏱️ Reduzir intervalo de renda passiva (5 compras disponíveis; -2s por compra) — Custo: <strong>1</strong> medalha cada <button id="buyPassiveSpeed" onclick="buyPrestigeItem('passiveSpeed')" style="float:right">Comprar</button> <span id="passiveSpeedCount" style="margin-left:8px;color:#ccc">(0/5)</span></div>
-      <div class="changelog-item">🏷️ Desconto Permanente de 10% (único) — Custo: <strong>5</strong> medalhas <button id="buyDiscount" onclick="buyPrestigeItem('discount')" style="float:right">Comprar</button></div>
-      <div class="changelog-item">✨ Multiplicador Global +10% (Clickers & Investimentos) — <strong>Único</strong> — Custo: <strong>3</strong> medalhas <button id="buyGlobalMul" onclick="buyPrestigeItem('globalMultiplier')" style="float:right">Comprar</button></div>
+    <!-- SECTION: HOME (Visão Geral) -->
+    <div id="view-home" class="view-section active">
+        <div class="card">
+            <div class="stats-grid">
+                <div class="stat-box" style="grid-column: span 2;">
+                    <span class="stat-label">Dinheiro Total</span>
+                    <div class="stat-value money-highlight" id="moneyDisplay">0</div>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">Renda / Clique</span>
+                    <div class="stat-value" id="incomeDisplay">1</div>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">Renda Passiva</span>
+                    <div class="stat-value" id="passiveDisplay">0</div>
+                </div>
+            </div>
+            <button onclick="ganharDinheiro()" style="height: 60px; font-size: 1.2rem; margin-top: 15px;">💸 TRABALHAR</button>
+            <button id="upgradeBtn" onclick="upgrade()" class="secondary-btn">
+                Melhorar Habilidades (Custo: <span id="upgradeCost">100</span>)
+            </button>
+        </div>
+        
+        <div class="card announcement" id="homeNews">
+            <h2>📢 Últimas Notícias</h2>
+            <p id="newsTicker">Bem-vindo ao mercado! Os negócios estão aquecidos.</p>
+        </div>
     </div>
-  </div>
-  <button onclick="voltar()">⬅ Voltar</button>
-</div>
 
-<!-- Tutorial overlay (aparece apenas na primeira vez) -->
-<div id="tutorialOverlay" class="hidden">
-  <div id="tutorialBox">
-    <h2>🎓 Tutorial inicial</h2>
-    <div id="tutorialProgress"></div>
-    <div id="tutorialSteps"></div>
-    <div class="tutorialNav">
-      <button class="tutorialBtn secondary" onclick="prevTutorial()">◀️ Anterior</button>
-      <button class="tutorialBtn" onclick="nextTutorial()">Próximo ▶️</button>
-      <button class="tutorialBtn" onclick="startGame()" id="tutorialSkip">Pular</button>
+    <!-- SECTION: MARKET (Finanças & Trade) -->
+    <div id="view-market" class="view-section">
+        <div class="sub-tabs">
+            <button class="sub-tab-btn active" onclick="switchSubTab('market', 'trade')">📈 Trade</button>
+            <button class="sub-tab-btn" onclick="switchSubTab('market', 'invest')">🏦 Investimentos</button>
+            <button class="sub-tab-btn" onclick="switchSubTab('market', 'loan')">💸 Empréstimo</button>
+        </div>
+
+        <!-- Sub: Trade -->
+        <div id="sub-market-trade">
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                    <span>Preço: <strong id="marketPrice">100.00</strong></span>
+                    <span id="marketTrend">Neutro</span>
+                </div>
+                <div id="graph-container">
+                    <canvas id="chart"></canvas>
+                </div>
+                
+                <div class="leverage-selector">
+                    <span style="font-size:0.8rem; align-self:center; color:#ccc">Alavancagem:</span>
+                    <button class="lev-btn selected" onclick="setLeverage(1)">x1</button>
+                    <button class="lev-btn" onclick="setLeverage(5)">x5</button>
+                    <button class="lev-btn" onclick="setLeverage(10)">x10</button>
+                </div>
+
+                <input type="number" id="tradeAmount" placeholder="Valor para investir" style="width:100%; padding:10px; background:#333; border:none; color:#fff; border-radius:6px; margin-bottom:5px;">
+                
+                <div id="activeTradeInfo" class="hidden" style="background:rgba(255,255,255,0.05); padding:10px; border-radius:6px; margin-bottom:10px; text-align:center;">
+                    Resultado: <strong id="tradePnl">0</strong>
+                    <button onclick="closeTrade()" style="background:var(--danger); margin-top:5px;">Fechar Posição</button>
+                </div>
+
+                <div class="trade-controls" id="openTradeControls">
+                    <button onclick="openTrade('up')" style="background:#00e676; color:#003300;">⬆ COMPRAR (Long)</button>
+                    <button onclick="openTrade('down')" style="background:#ff5252; color:#330000;">⬇ VENDER (Short)</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sub: Investments -->
+        <div id="sub-market-invest" class="hidden">
+            <div class="card" id="investList">
+                <!-- Preenchido via JS -->
+            </div>
+        </div>
+
+        <!-- Sub: Loan -->
+        <div id="sub-market-loan" class="hidden">
+             <div class="card">
+                <h2>Gerente do Banco</h2>
+                <div class="stat-box" style="margin-bottom:15px;">
+                    <span class="stat-label">Dívida Atual</span>
+                    <div class="stat-value" id="loanDebt">0</div>
+                    <small>Juros: 2% a cada 30s</small>
+                </div>
+                <input type="number" id="loanInput" placeholder="Valor" style="width:100%; padding:10px; border-radius:6px; border:none;">
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <button onclick="takeLoan()" style="flex:1;">Pegar Empréstimo</button>
+                    <button onclick="payLoan()" class="secondary-btn" style="flex:1;">Pagar Dívida</button>
+                </div>
+             </div>
+        </div>
     </div>
-  </div>
-</div>
+
+    <!-- SECTION: ASSETS (Patrimônio) -->
+    <div id="view-assets" class="view-section">
+        <div class="sub-tabs">
+            <button class="sub-tab-btn active" onclick="switchSubTab('assets', 'houses')">🏠 Imóveis</button>
+            <button class="sub-tab-btn" onclick="switchSubTab('assets', 'vehicles')">🚗 Veículos</button>
+            <button class="sub-tab-btn" onclick="switchSubTab('assets', 'gallery')">🖼️ Galeria</button>
+        </div>
+        
+        <div id="sub-assets-houses">
+            <div id="houseList"></div>
+        </div>
+        <div id="sub-assets-vehicles" class="hidden">
+            <div id="vehicleList"></div>
+        </div>
+        <div id="sub-assets-gallery" class="hidden">
+            <div class="card">
+                <p style="color:#ccc; text-align:center;">Seus itens raros e conquistas aparecem aqui.</p>
+                <div id="galleryGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(80px, 1fr)); gap:10px; margin-top:10px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION: RANKING -->
+    <div id="view-ranking" class="view-section">
+        <div class="card">
+            <h2>🏆 Leaderboard Global (IA Ativa)</h2>
+            <div style="display:flex; gap:10px; margin-bottom:15px;">
+                <button onclick="renderRanking('money')" class="secondary-btn">Mais Ricos</button>
+                <button onclick="renderRanking('level')" class="secondary-btn">Maior Nível</button>
+            </div>
+            <div style="background: rgba(0,0,0,0.2); border-radius:8px; padding:10px;">
+                <div style="display:flex; justify-content:space-between; padding:5px; color:#777; font-size:0.8rem;">
+                    <span># JOGADOR</span>
+                    <span>VALOR</span>
+                </div>
+                <ul id="rankingList" class="ranking-list">
+                    <!-- JS -->
+                </ul>
+            </div>
+            <p style="font-size:0.8rem; color:#555; text-align:center; margin-top:10px;">IAs jogam em tempo real. Continue evoluindo!</p>
+        </div>
+    </div>
+
+    <!-- SECTION: MENU (Settings & Prestige) -->
+    <div id="view-menu" class="view-section">
+        <div class="card">
+            <h2>⚙️ Configurações</h2>
+            <div>Nome: <strong id="playerNameDisplay">-</strong></div>
+            <div style="display:flex; gap:5px; margin-top:5px;">
+                <input type="text" id="newNameInput" placeholder="Novo nome" style="padding:8px; border-radius:6px; border:none; width:70%;">
+                <button class="secondary-btn" style="width:30%; margin-top:0;" onclick="changeName()">Salvar</button>
+            </div>
+            
+            <hr style="border-color:rgba(255,255,255,0.1); margin:15px 0;">
+            
+            <button onclick="restartTutorial()" class="secondary-btn">🎓 Rever Tutorial</button>
+            <button onclick="forceSave()">💾 Salvar Manualmente</button>
+            <button onclick="exportSave()" class="secondary-btn">Exportar Save</button>
+            <button onclick="document.getElementById('importFile').click()" class="secondary-btn">Importar Save</button>
+            <input type="file" id="importFile" class="hidden" onchange="importSave(this)">
+            <button onclick="resetGame()" class="danger-btn">🗑️ Resetar Tudo</button>
+        </div>
+
+        <div class="card">
+            <h2>🏅 Prestígio</h2>
+            <div class="stats-grid">
+                <div class="stat-box"><span class="stat-label">Medalhas</span><strong id="prestigeMedals">0</strong></div>
+                <div class="stat-box"><span class="stat-label">Bônus Global</span><strong id="prestigeBonus">0%</strong></div>
+            </div>
+            <p style="font-size:0.9rem; color:#ccc; margin-top:10px;">Reseta seu dinheiro e construções, mas mantém medalhas e bônus. Requer: 1 Milhão.</p>
+            <button id="btnPrestige" onclick="doPrestige()" disabled>Prestigiar</button>
+        </div>
+
+        <div class="card" id="updatesCard">
+            <h2>📜 Atualizações</h2>
+            <div id="changelogList" style="max-height:150px; overflow-y:auto; font-size:0.9rem;"></div>
+            <button onclick="markUpdatesRead()" class="secondary-btn">Marcar como lidas</button>
+        </div>
+    </div>
 
 </main>
+
+<!-- BOTTOM NAVIGATION -->
+<nav class="bottom-nav">
+    <div class="nav-item active" onclick="navTo('home')">
+        <span class="nav-icon">🏠</span>Início
+    </div>
+    <div class="nav-item" onclick="navTo('market')">
+        <span class="nav-icon">📈</span>Mercado
+    </div>
+    <div class="nav-item" onclick="navTo('assets')">
+        <span class="nav-icon">🏢</span>Ativos
+    </div>
+    <div class="nav-item" onclick="navTo('ranking')">
+        <span class="nav-icon">🏆</span>Ranking
+    </div>
+    <div class="nav-item" onclick="navTo('menu')">
+        <span class="nav-icon">☰</span>Menu
+        <div id="menuNotif" class="notification-dot"></div>
+    </div>
+</nav>
+
+<!-- Tutorial Overlay -->
+<div id="tutorialOverlay" class="overlay hidden">
+    <div class="modal">
+        <h2 id="tutTitle">Bem-vindo!</h2>
+        <p id="tutText">Vamos aprender a ganhar dinheiro?</p>
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+            <button class="secondary-btn" onclick="skipTutorial()">Pular</button>
+            <button onclick="nextTutorial()">Próximo ▶</button>
+        </div>
+    </div>
+</div>
+
 <script>
-const MAX_UPGRADE_LEVEL = 100;
-let dinheiro=0,renda=1,nivel=1,rendaPassiva=0,custoUpgrade=100,prestigios=0,emprestimo=0,emprestimoTaxa=0.02,emprestimoTakenAt=0;
-let veiculosComprados=[],casasCompradas=[],isInvesting=false;
-// Loja de Prestígios e timers
-let prestigeShop = { autoClicker:false, passiveBoost:false, passiveSpeedCount:0, discount:false, globalMultiplier:false };
-let passiveIntervalMs = 30000; let passiveIntervalId = null; let autoClickerIntervalId = null;
+/* =========================================
+   CORE VARIABLES & STATE
+   ========================================= */
+const STATE = {
+    money: 0,
+    income: 1,
+    level: 1,
+    passive: 0,
+    upgradeCost: 100,
+    prestige: 0,
+    houses: [],
+    vehicles: [],
+    gallery: [],
+    investments: [], 
+    loan: { debt: 0, lastUpdate: Date.now() },
+    name: "Player",
+    startTime: Date.now(),
+    lastSave: Date.now(),
+    updatesRead: 0,
+    tutorialStep: 0
+};
 
-// Gallery & item system
-let galleryItems = []; // itens especiais (ex: Cofre de Ouro)
-let permanentItemBonuses = { passive: 0, click: 0 }; // bônus permanentes obtidos por itens
-let activeBuffs = []; // buffs temporários (ex: poção de +25% clique com expiracao)
+const GAME_DATA = {
+    investments: [
+        { name: "Fundo Conservador", cost: 5000, return: 30, desc: "+30/ciclo" },
+        { name: "Start-up Tech", cost: 15000, return: 100, desc: "+100/ciclo" },
+        { name: "Mineração Bitcoin", cost: 45000, return: 350, desc: "+350/ciclo" },
+        { name: "Conglomerado", cost: 150000, return: 1200, desc: "+1200/ciclo" }
+    ],
+    houses: [
+        { name: "Kitnet", cost: 10000, return: 50 },
+        { name: "Apartamento", cost: 50000, return: 300 },
+        { name: "Mansão", cost: 500000, return: 3500 },
+        { name: "Ilha Privada", cost: 5000000, return: 40000 }
+    ],
+    vehicles: [
+        { name: "Carro Popular", cost: 20000 },
+        { name: "SUV de Luxo", cost: 80000 },
+        { name: "Superesportivo", cost: 250000 },
+        { name: "Jatinho", cost: 1500000 }
+    ],
+    updates: [
+        "2.1: Tutorial reativável e inteligente.",
+        "2.1: IA de Ranking melhorada e competitiva.",
+        "2.1: Notícias em tempo real baseadas na IA.",
+        "2.0: Interface totalmente nova!",
+    ]
+};
 
-// Player profile & rankings
-let playerName = '';
-let playerNameSet = false; // marca que já perguntamos o nome (apenas uma vez)
-let playTimeMs = 0; // tempo total jogado em ms (incrementado a cada segundo)
-let sessionStart = Date.now();
-let leaderboards = { money: [], time: [] };
-let chosenNames = []; // nomes já escolhidos (únicos)
-let playerOptOut = false; // se true, o usuário não entra nos rankings
-let currentRankingTab = 'money';
+// Ranking Simulado & IA
+let fakePlayers = [];
 
+// Trade System
+let market = { price: 100, history: [], trend: 0, volatility: 0.5 };
+let activeTrade = null; 
+let leverage = 1;
 
-// ==========================
-// Parâmetros de mercado (fácil de alterar)
-// ==========================
-const initialPrice = 100.00;        // preço inicial
-const updateInterval = 500;         // ms entre atualizações de preço (ex: 500ms)
-const percentRange = 1.5;           // variação máxima percentual por tick (+/- percentRange)
-const trendMinSec = 4;              // duração mínima de uma tendência (segundos)
-const trendMaxSec = 12;             // duração máxima de uma tendência (segundos)
-const volatility = 1.0;             // multiplicador de volatilidade (ajusta amplitude)
-const historyMax = 120;             // número de pontos do gráfico visíveis
+// Timers
+let passiveTimer;
+let marketTimer;
+let saveTimer;
 
-// Estado do mercado
-let marketPriceVal = initialPrice;
-let priceHistory = Array(historyMax).fill(initialPrice);
-let trend = { type: 'neutral', expiresAt: 0 };
+/* =========================================
+   INITIALIZATION
+   ========================================= */
+window.onload = function() {
+    loadGame();
+    initUI();
+    initRanking();
+    startLoops();
+    checkTutorial();
+    renderAll();
+};
 
-// Variáveis de animação e desenho
-const canvas = document.getElementById('chart');
-const ctx = canvas.getContext('2d');
-let anim = { startPrice: marketPriceVal, endPrice: marketPriceVal, startTime: 0, duration: updateInterval };
+function initUI() {
+    // Generate Investment Buttons
+    const invList = document.getElementById('investList');
+    invList.innerHTML = GAME_DATA.investments.map((inv, i) => `
+        <button class="buy-btn secondary-btn" onclick="buyInvestment(${i})">
+            <div>
+                <div style="font-weight:bold; color:var(--primary)">${inv.name}</div>
+                <div style="font-size:0.8rem; color:#ccc">${inv.desc}</div>
+            </div>
+            <div style="text-align:right">
+                <div>$${inv.cost.toLocaleString()}</div>
+                <small>Comprar</small>
+            </div>
+        </button>
+    `).join('');
 
-// Estado de trade
-let tradeStartPrice = 0, tradeStake = 0, tradeDir = null;
+    // Generate House List
+    const houseList = document.getElementById('houseList');
+    houseList.innerHTML = GAME_DATA.houses.map((h, i) => `
+        <button class="buy-btn secondary-btn" onclick="buyHouse(${i})">
+            <div>🏠 ${h.name}</div>
+            <div>$${h.cost.toLocaleString()} <br><small>+${h.return}/s</small></div>
+        </button>
+    `).join('');
 
-// Atualiza valores visuais e salva (sem forçar saltos no gráfico)
-function atualizar(){
-  money.innerText = dinheiro.toLocaleString();
-  const mult = getPrestigeMultiplier();
-  // renda por clique: mostra base e efetiva com bônus (inclui bônus permanentes de itens)
-  const clickMultTotal = mult * (1 + (permanentItemBonuses.click || 0));
-  income.innerHTML = `${renda} <small style="color:#ccc">(+${Math.round((clickMultTotal-1)*100)}% → ${Math.floor(renda*clickMultTotal)})</small>`;
-  level.innerText = nivel;
-  const passiveMultTotal = mult * (1 + (permanentItemBonuses.passive || 0));
-  passive.innerHTML = `${rendaPassiva.toLocaleString()} <small style="color:#ccc">(+${Math.round((passiveMultTotal-1)*100)}% → ${Math.floor(rendaPassiva*passiveMultTotal).toLocaleString()})</small>`;
-  renderPrestigios();
-  updateEndgameUnlocks();
-  // Mostrar custo ou indicar que chegou ao nível máximo
-  if (nivel >= MAX_UPGRADE_LEVEL){
-    upgradeCost.innerText = 'MAX';
-    const btn = document.getElementById('upgradeBtn'); if (btn) btn.disabled = true;
-  } else {
-    upgradeCost.innerText = custoUpgrade;
-    const btn = document.getElementById('upgradeBtn'); if (btn) btn.disabled = false;
-  }
-  marketPrice.innerText = marketPriceVal.toFixed(2);
-  marketTrend.innerText = trend.type.charAt(0).toUpperCase() + trend.type.slice(1);
-  const loanEl = document.getElementById('loan'); if(loanEl) loanEl.innerText = emprestimo.toLocaleString();
-  const loanDisplay = document.getElementById('loanDisplay'); if(loanDisplay) loanDisplay.innerText = emprestimo.toLocaleString();
-  const loanRate = document.getElementById('loanRateDisplay'); if(loanRate) loanRate.innerText = Math.round(emprestimoTaxa*100) + '%';
-  const loanCooldownEl = document.getElementById('loanCooldown'); if(loanCooldownEl){
-    if(!emprestimo || emprestimo <= 0) loanCooldownEl.innerText = 'Sem dívida';
-    else{
-      const remain = Math.max(0, 300000 - (Date.now() - (emprestimoTakenAt || 0)));
-      if(remain > 0){
-        const mm = Math.floor(remain/60000); const ss = Math.floor((remain%60000)/1000);
-        loanCooldownEl.innerText = `Você poderá pagar em ${mm}m ${ss}s`;
-      } else {
-        loanCooldownEl.innerText = 'Você pode pagar o empréstimo agora';
-      }
+    // Generate Vehicle List
+    const vehList = document.getElementById('vehicleList');
+    vehList.innerHTML = GAME_DATA.vehicles.map((v, i) => `
+        <button class="buy-btn secondary-btn" onclick="buyVehicle(${i})">
+            <div>🚗 ${v.name}</div>
+            <div>$${v.cost.toLocaleString()}</div>
+        </button>
+    `).join('');
+
+    // Changelog
+    const logList = document.getElementById('changelogList');
+    logList.innerHTML = GAME_DATA.updates.map(u => `<div style="padding:5px; border-bottom:1px solid #333">${u}</div>`).join('');
+    
+    // Notification
+    if(GAME_DATA.updates.length > STATE.updatesRead) {
+        document.getElementById('menuNotif').style.display = 'block';
     }
-  }
-} 
-
-// ==========================
-// Motor de mercado (tendências e atualização periódica)
-// ==========================
-// Inicia mercado e ciclo de tendências
-function startMarket(){
-  // popular histórico se estiver vazio
-  if(!priceHistory || priceHistory.length < historyMax) priceHistory = Array(historyMax).fill(marketPriceVal);
-  scheduleNextTrend();
-  scheduleTick();
-  anim.startTime = performance.now();
-  requestAnimationFrame(animate);
 }
 
-// Schedule a next trend cycle
-function scheduleNextTrend(){
-  const types = ['up','neutral','down'];
-  // chance diferente: priorizar neutro e alta ligeiramente
-  const r = Math.random();
-  let t;
-  if(r < 0.40) t = 'up';
-  else if(r < 0.75) t = 'neutral';
-  else t = 'down';
-  const dur = (Math.random() * (trendMaxSec - trendMinSec) + trendMinSec) * 1000; // ms
-  trend.type = t;
-  trend.expiresAt = Date.now() + dur;
-  // ao fim da duração, agenda próxima tendência
-  setTimeout(scheduleNextTrend, dur);
+/* =========================================
+   NAVIGATION SYSTEM
+   ========================================= */
+function navTo(viewId) {
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+    
+    document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+    document.getElementById(`view-${viewId}`).classList.add('active');
+    
+    if(viewId === 'ranking') updateRankingVisuals();
+    if(viewId === 'market') resizeChart();
 }
 
-// Agende o próximo tick de preço
-function scheduleTick(){
-  setTimeout(()=>{
-    tickPrice();
-    scheduleTick();
-  }, updateInterval);
+function switchSubTab(parent, sub) {
+    document.querySelectorAll(`#view-${parent} .sub-tab-btn`).forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    const container = document.getElementById(`view-${parent}`);
+    container.querySelectorAll('[id^="sub-"]').forEach(d => d.classList.add('hidden'));
+    document.getElementById(`sub-${parent}-${sub}`).classList.remove('hidden');
 }
 
-// Calcula novo preço baseado em tendência, ruído e volatilidade
-function tickPrice(){
-  // base random percentual entre -percentRange e +percentRange
-  const base = (Math.random() * 2 - 1) * percentRange;
-  // bias do trend: torna mais provável movimento na direção da tendência
-  let bias = 0;
-  if(trend.type === 'up') bias = Math.random() * (percentRange*0.6); // positive bias
-  else if(trend.type === 'down') bias = -Math.random() * (percentRange*0.6); // negative bias
-  // final percent considerando volatilidade
-  const pct = (base + bias) * volatility;
-  const newPrice = Math.max(0.01, marketPriceVal * (1 + pct/100));
-
-  // Shift histórico
-  priceHistory.push(newPrice);
-  if(priceHistory.length > historyMax) priceHistory.shift();
-
-  // ajustar animação para transição suave entre valores
-  anim.startPrice = marketPriceVal;
-  anim.endPrice = newPrice;
-  anim.startTime = performance.now();
-  anim.duration = updateInterval;
-
-  marketPriceVal = newPrice;
-  atualizar();
+/* =========================================
+   GAMEPLAY LOGIC
+   ========================================= */
+function ganharDinheiro() {
+    const prestigeMul = 1 + (STATE.prestige * 0.05); 
+    const amount = Math.floor(STATE.income * prestigeMul);
+    STATE.money += amount;
+    updateStats();
 }
 
-// Desenho e animação contínua (requestAnimationFrame)
-function animate(now){
-  // interpolar último ponto para suavizar movimento
-  let t = Math.min(1, (now - anim.startTime) / anim.duration);
-  // usar ease in-out para suavizar
-  const ease = (t*(2-t));
-  const displayedLast = anim.startPrice + (anim.endPrice - anim.startPrice) * ease;
-
-  // construir array de y-values a desenhar (substitui último item por displayedLast)
-  const drawData = priceHistory.slice();
-  drawData[drawData.length - 1] = displayedLast;
-
-  drawChart(drawData);
-  // atualizar informações do trade em tempo real (P&L não realizado)
-  updateTradeInfo();
-  requestAnimationFrame(animate);
+function upgrade() {
+    if(STATE.money >= STATE.upgradeCost) {
+        STATE.money -= STATE.upgradeCost;
+        STATE.income += Math.floor(1 + (STATE.level * 0.5));
+        STATE.level++;
+        STATE.upgradeCost = Math.floor(STATE.upgradeCost * 1.5);
+        renderAll();
+    }
 }
 
-// Desenha o gráfico no canvas (linha, cor conforme direção instantânea)
-function drawChart(data){
-  const w = canvas.width = canvas.clientWidth;
-  const h = canvas.height = canvas.clientHeight;
-
-  // cleared background (fundo escuro)
-  ctx.fillStyle = '#0a0a0a';
-  ctx.fillRect(0,0,w,h);
-
-  // calcular domínio vertical
-  const min = Math.min(...data);
-  const max = Math.max(...data);
-  const pad = (max - min) * 0.1 + 0.0001;
-  const vmin = min - pad;
-  const vmax = max + pad;
-
-  // mapeamento price -> y
-  const priceToY = p => h - ((p - vmin) / (vmax - vmin)) * h;
-
-  // decidir cor pela variação recente
-  const last = data[data.length-1];
-  const prev = data[data.length-2] || last;
-  const slopeUp = (last - prev) >= 0;
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = slopeUp ? '#4caf50' : '#ff5252';
-  ctx.beginPath();
-  for(let i=0;i<data.length;i++){
-    const x = (w * i) / (data.length - 1);
-    const y = priceToY(data[i]);
-    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-  }
-  ctx.stroke();
-
-  // small marker for last price
-  ctx.fillStyle = slopeUp ? '#4caf50' : '#ff5252';
-  ctx.beginPath();
-  const lx = w * (data.length - 1) / (data.length - 1);
-  const ly = priceToY(last);
-  ctx.arc(lx, ly, 3, 0, Math.PI*2);
-  ctx.fill();
-}
-
-// ==========================
-// Trade: abrir, fechar manualmente e calcular resultado
-// ==========================
-function investirGrafico(dir){
-  if(isInvesting) return alert('Já existe um trade em execução');
-  const v = Number(valorInvest.value);
-  if(!v || v<=0 || v>dinheiro) return alert('Valor inválido');
-  // abrir posição
-  isInvesting = true;
-  tradeStake = v;
-  tradeDir = dir;
-  tradeStartPrice = marketPriceVal;
-  dinheiro -= v;
-  // desabilita apenas os botões de abrir trade (mantém botão de fechar ativo)
-  document.querySelectorAll('.tradeOpenBtn').forEach(b=>b.disabled=true);
-  document.getElementById('closeTrade').classList.remove('hidden');
-  marketStatus.innerText = 'Trade Aberto';
-  atualizar();
-  updateTradeInfo();
-}
-
-// atualiza info do trade em tempo real (chamar dentro do loop de animação ou ao mudar preço)
-function updateTradeInfo(){
-  const info = document.getElementById('tradeInfo');
-  if(!isInvesting){
-    info.innerHTML = 'Nenhum trade aberto';
-    document.getElementById('closeTrade').classList.add('hidden');
-    return;
-  }
-
-  const dirTxt = tradeDir === 'up' ? 'Compra (UP)' : 'Venda (DOWN)';
-  const percentChange = (marketPriceVal - tradeStartPrice) / tradeStartPrice;
-  const effectivePercent = (tradeDir === 'up') ? percentChange : -percentChange;
-
-  const unrealized = Number((tradeStake * effectivePercent).toFixed(2));
-  const sign = unrealized >= 0 ? '+' : '';
-
-  info.innerHTML = `
-    Trade: ${dirTxt}<br>
-    Abertura: ${tradeStartPrice.toFixed(2)} | Stake: ${tradeStake}<br>
-    P&L Atual: <strong style="color:${unrealized>=0?"#4caf50":"#ff5252"}">
-      ${sign}${unrealized}
-    </strong>
-  `;
-
-  const closeBtn = document.getElementById('closeTrade');
-  closeBtn.textContent = `Fechar Trade — ${sign}${unrealized}`;
-  closeBtn.style.background = unrealized >= 0 ? '#2e7d32' : '#b00020';
-}
-
-
-
-function pararTrade(){
-  if(!isInvesting) return; // nada a fechar
-  finalizarTrade();
-}
-
-function finalizarTrade(){
-  // calcula mudança percentual efetiva
-  const percentChange = (marketPriceVal - tradeStartPrice) / tradeStartPrice;
-  const effectivePercent = (tradeDir === 'up') ? percentChange : -percentChange;
-  const ganho = Math.floor(tradeStake * effectivePercent);
-  dinheiro += tradeStake + ganho;
-  resultadoGrafico.innerText = ganho;
-  marketStatus.innerText = ganho >= 0 ? 'Ganhou' : 'Perdeu';
-  setTimeout(()=>{ marketStatus.innerText = 'Pronto'; }, 1200);
-  // reabilita os botões de abrir trade
-  document.querySelectorAll('.tradeOpenBtn').forEach(b=>b.disabled=false);
-  document.getElementById('closeTrade').classList.add('hidden');
-  isInvesting = false; tradeStake = 0; tradeDir = null; tradeStartPrice = marketPriceVal;
-  updateTradeInfo();
-  atualizar();
-} 
-function getPrestigeMultiplier(){
-  // agora cada prestígio dá +5% e é limitado a +50% (0.5)
-  return 1 + Math.min(prestigios * 0.05, 0.5);
-}
-function ganharDinheiro(){
-  // escala de clique ajustada: aumenta mais devagar com o nível para evitar valores excessivos (ex: lvl100 → ~6x)
-  const levelMul = 1 + Math.floor(nivel / 20); // +1 a cada 20 níveis (lvl100 → 6x)
-  const globalMul = prestigeShop.globalMultiplier ? 1.10 : 1;
-  const amount = Math.floor(renda * levelMul * getPrestigeMultiplier() * globalMul * getClickBuffMultiplier());
-  dinheiro += amount;
-  salvar(true); // persistir imediatamente após clique para evitar perdas
-  atualizar();
-}
-function upgrade(){
-  if (nivel >= MAX_UPGRADE_LEVEL) return alert('Você já atingiu o nível máximo');
-  if(dinheiro>=custoUpgrade){
-    dinheiro-=custoUpgrade;
-    renda += 1 + Math.floor(nivel * 0.1);
-    nivel++;
-    // aplicar escala mais suave a partir do nível 71 (reduzir o multiplicador)
-    if(nivel <= 70){
-      custoUpgrade = Math.floor(custoUpgrade * 1.085);
+function buyInvestment(idx) {
+    const item = GAME_DATA.investments[idx];
+    if(STATE.money >= item.cost) {
+        STATE.money -= item.cost;
+        STATE.passive += item.return;
+        STATE.investments.push(idx);
+        alert(`Você comprou: ${item.name}!`);
+        renderAll();
     } else {
-      custoUpgrade = Math.floor(custoUpgrade * 1.045);
+        alert("Dinheiro insuficiente!");
     }
-    atualizar();
-  } else alert('Dinheiro insuficiente');
 }
-function applyDiscount(price){ return prestigeShop.discount ? Math.ceil(price * 0.9) : price; }
 
-function comprarInvestimento(c,r){
-  const price = applyDiscount(c);
-  if(dinheiro>=price){
-    dinheiro-=price;
-    let gain = r;
-    if(Array.isArray(r)){
-      const min = r[0], max = r[1];
-      gain = Math.floor(Math.random()*(max-min+1)+min);
-    }
-    rendaPassiva += gain;
-    alert(`Investimento adquirido. Renda passiva adicionada: ${gain} por ${passiveIntervalMs/1000}s`);
-    addLog(`Investimento comprado por ${price.toLocaleString()} — Retorno ${gain}`);
-    atualizar();
-  } else alert('Dinheiro insuficiente');
-} 
+function buyHouse(idx) {
+    const item = GAME_DATA.houses[idx];
+    if(STATE.money >= item.cost) {
+        STATE.money -= item.cost;
+        STATE.passive += item.return;
+        STATE.houses.push(idx);
+        alert(`Imóvel adquirido: ${item.name}`);
+        renderAll();
+    } else alert("Falta verba!");
+}
 
-// Empréstimos: pedir e pagar
-function takeLoan(amount){
-  if(!amount || amount <= 0) return alert('Valor inválido');
-  dinheiro += amount;
-  emprestimo += Math.ceil(amount);
-  emprestimoTakenAt = Date.now(); // grava o momento do empréstimo
-  addLog(`Empréstimo concedido: ${amount.toLocaleString()} — você poderá pagar em ~5 minutos`);
-  salvar();
-  atualizar();
+function buyVehicle(idx) {
+    const item = GAME_DATA.vehicles[idx];
+    if(STATE.money >= item.cost) {
+        STATE.money -= item.cost;
+        STATE.vehicles.push(idx);
+        addToGallery(`Chave do ${item.name}`);
+        alert("Veículo na garagem!");
+        renderAll();
+    } else alert("Dinheiro insuficiente!");
 }
-function requestLoan(){
-  const v = Number(document.getElementById('loanAmountInput').value);
-  if(!v || v<=0) return alert('Valor inválido');
-  // limite: máximo 50% do dinheiro atual
-  const cap = Math.floor(dinheiro * 0.5);
-  if(cap <= 0) return alert('Você não tem saldo suficiente para solicitar empréstimo (limite: 0)');
-  if(v > cap){ return alert(`Limite excedido. Você pode pedir no máximo ${cap.toLocaleString()} (50% do seu saldo atual)`); }
-  takeLoan(v);
-  document.getElementById('loanAmountInput').value = '';
-}
-function repayLoan(amount){
-  const pay = Math.ceil(Number(amount) || 0);
-  if(pay <= 0) return;
-  if(emprestimo <= 0) return alert('Você não possui empréstimos para pagar');
-  // verificar cooldown de 5 minutos (300000ms)
-  const now = Date.now();
-  if(now - (emprestimoTakenAt || 0) < 300000) {
-    const remain = 300000 - (now - (emprestimoTakenAt || 0));
-    const mm = Math.floor(remain / 60000);
-    const ss = Math.floor((remain % 60000) / 1000);
-    return alert(`Você só poderá pagar o empréstimo em ${mm}m ${ss}s`);
-  }
-  if(dinheiro < pay) return alert('Dinheiro insuficiente para pagar esse valor');
-  dinheiro -= pay;
-  emprestimo -= pay;
-  if(emprestimo < 0) emprestimo = 0;
-  if(emprestimo === 0) emprestimoTakenAt = 0; // reset cooldown quando quitado
-  addLog(`Pagamento de empréstimo: ${pay.toLocaleString()}`);
-  salvar();
-  atualizar();
-}
-function repayLoanInput(){
-  const v = Number(document.getElementById('loanRepayInput').value);
-  if(!v || v<=0) return alert('Valor inválido');
-  repayLoan(v);
-  document.getElementById('loanRepayInput').value = '';
-}
-function isLockedHouse(name){
-  const els = document.querySelectorAll('.endgame');
-  for(const el of els){
-    if(el.innerHTML.includes(name)){
-      const req = Number(el.getAttribute('data-required')||0);
-      return prestigios < req ? req : 0;
+
+function addToGallery(itemName) {
+    if(!STATE.gallery.includes(itemName)) {
+        STATE.gallery.push(itemName);
+        renderGallery();
     }
-  }
-  return 0;
 }
-function comprarCasa(name,c,r){
-  const lockReq = isLockedHouse(name);
-  if(lockReq){ return alert(`Esta casa está bloqueada. Requer ${lockReq} medalhas.`); }
-  const price = applyDiscount(c);
-  if(dinheiro>=price){
-    dinheiro-=price;
-    let gain = r;
-    if(Array.isArray(r)){
-      const min = r[0], max = r[1];
-      gain = Math.floor(Math.random()*(max-min+1)+min);
+
+function renderGallery() {
+    const grid = document.getElementById('galleryGrid');
+    grid.innerHTML = STATE.gallery.map(i => `<div style="background:#333; padding:5px; border-radius:4px; font-size:0.7rem; text-align:center;">${i}</div>`).join('');
+}
+
+/* =========================================
+   TRADE SYSTEM (MARKET)
+   ========================================= */
+function initMarket() {
+    for(let i=0; i<50; i++) tickMarket(true);
+}
+
+function tickMarket(silent = false) {
+    if(Math.random() < 0.05) market.trend = (Math.random() - 0.5); 
+    
+    let change = (Math.random() - 0.5 + market.trend * 0.2) * market.volatility;
+    market.price = Math.max(10, market.price + change);
+    market.history.push(market.price);
+    if(market.history.length > 50) market.history.shift();
+
+    if(!silent) {
+        drawChart();
+        document.getElementById('marketPrice').innerText = market.price.toFixed(2);
+        document.getElementById('marketTrend').innerText = change > 0 ? "Alta ▲" : "Baixa ▼";
+        document.getElementById('marketTrend').style.color = change > 0 ? varCSS('--success') : varCSS('--danger');
+        updateActiveTrade();
     }
-    rendaPassiva += gain;
-    casasCompradas.push({nome:name,preco:price,retorno:gain});
-    addLog(`Casa comprada: ${name} — Retorno ${gain} por ${passiveIntervalMs/1000}s`);
-    alert(`Você comprou ${name}. Renda passiva: ${gain} por ${passiveIntervalMs/1000}s`);
-    atualizar();
-  } else alert('Dinheiro insuficiente');
 }
-function comprarVeiculo(n,p){ const price = applyDiscount(p); if(dinheiro>=price){dinheiro-=price;veiculosComprados.push({nome:n,preco:price});atualizar();}else alert('Dinheiro insuficiente'); } 
-function abrir(id){painelPrincipal.classList.add('hidden');document.getElementById(id).classList.remove('hidden'); if(id === 'loja') mostrarLojaTab('veiculos'); }
-function voltar(){document.querySelectorAll('.card').forEach(c=>c.classList.add('hidden'));painelPrincipal.classList.remove('hidden');}
-function mostrarGaleria(t){
-  let h='';
-  if(t==='veiculos'){
-    veiculosComprados.forEach(v=>h+=`🚗 ${v.nome} - ${v.preco}<br>`);
-  } else if(t==='casas'){
-    casasCompradas.forEach(c=>h+=`🏠 ${c.nome} - ${c.preco}<br>`);
-  } else if(t==='itens'){
-    galleryItems.forEach(it=>{
-      if(it.type === 'cofre') h += `🗝️ ${it.name} — adquirido em ${new Date(it.ts).toLocaleString()}<br>`;
-      else h += `${it.name ? it.name : it.type}<br>`;
+
+function drawChart() {
+    const ctx = document.getElementById('chart').getContext('2d');
+    const container = document.getElementById('graph-container');
+    const w = ctx.canvas.width = container.offsetWidth;
+    const h = ctx.canvas.height = 220;
+    
+    ctx.fillStyle = '#000'; ctx.fillRect(0,0,w,h);
+    
+    const min = Math.min(...market.history) * 0.95;
+    const max = Math.max(...market.history) * 1.05;
+    const range = max - min;
+    
+    ctx.beginPath();
+    ctx.strokeStyle = market.history[market.history.length-1] > market.history[market.history.length-2] ? '#00e676' : '#ff5252';
+    ctx.lineWidth = 2;
+    
+    market.history.forEach((p, i) => {
+        const x = (i / (market.history.length-1)) * w;
+        const y = h - ((p - min) / range) * h;
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
     });
-  }
-  listaGaleria.innerHTML = h || 'Nenhum item registrado';
+    ctx.stroke();
 }
 
-function mostrarLojaTab(tab){
-  const v = document.getElementById('lojaVeiculos');
-  const c = document.getElementById('lojaCaixas');
-  if(tab === 'veiculos'){ v.classList.remove('hidden'); c.classList.add('hidden'); }
-  else { v.classList.add('hidden'); c.classList.remove('hidden'); }
+function setLeverage(val) {
+    leverage = val;
+    document.querySelectorAll('.lev-btn').forEach(b => b.classList.remove('selected'));
+    event.target.classList.add('selected');
 }
 
-// buyBox: cost 5,000,000 — probabilities: 60% 500k, 35% potion +25% clique (2min), 4.5% 250k, 0.5% cofre de ouro
-function buyBox(){
-  const cost = 5000000;
-  if(dinheiro < cost) return alert('Dinheiro insuficiente para comprar a caixa');
-  dinheiro -= cost; atualizar();
-  const r = Math.random() * 100;
-  const resultEl = document.getElementById('boxResult');
-  if(r < 60){ dinheiro += 500000; resultEl.innerText = 'Você ganhou 500.000!'; }
-  else if(r < 95){ // 60 + 35
-    const expires = Date.now() + 2*60*1000; // 2 minutos
-    // não empilhar: se já houver um buff 'click', renovamos/atualizamos; caso contrário, criamos
-    const existing = activeBuffs.find(b => b.type === 'click');
-    if(existing){ existing.mul = 0.25; existing.expires = expires; }
-    else { activeBuffs.push({type:'click', mul:0.25, expires:expires}); }
-    resultEl.innerText = 'Você ganhou uma Poção: +25% renda por clique por 2 minutos! (não acumulativa)';
-  }
-  else if(r < 99.5){ dinheiro += 250000; resultEl.innerText = 'Você ganhou 250.000!'; }
-  else { // cofre de ouro
-    const it = {type:'cofre', name:'Cofre de Ouro', ts: Date.now()};
-    galleryItems.push(it);
-    // aplicar bônus permanente
-    permanentItemBonuses.passive = (permanentItemBonuses.passive || 0) + 0.20;
-    permanentItemBonuses.click = (permanentItemBonuses.click || 0) + 0.10;
-    resultEl.innerText = 'Você encontrou um Cofre de Ouro! Ele foi adicionado à sua Galeria.';
-    addLog('Cofre de Ouro adquirido — +20% renda passiva (permanente), +10% renda por clique (permanente)');
-  }
-  salvar(true); atualizar();
+function openTrade(direction) {
+    if(activeTrade) return alert("Feche a posição atual antes de abrir outra.");
+    const val = parseFloat(document.getElementById('tradeAmount').value);
+    if(!val || val <= 0 || val > STATE.money) return alert("Valor inválido.");
+    
+    STATE.money -= val;
+    activeTrade = { type: direction, entry: market.price, amount: val, leverage: leverage };
+    
+    document.getElementById('activeTradeInfo').classList.remove('hidden');
+    document.getElementById('openTradeControls').classList.add('hidden');
+    renderAll();
 }
 
-// cleanup buffs (remove expired)
-function cleanupBuffs(){
-  const now = Date.now();
-  activeBuffs = activeBuffs.filter(b => !b.expires || b.expires > now);
-}
-
-function getClickBuffMultiplier(){
-  cleanupBuffs();
-  // Não acumulamos buffs de poção; consideramos apenas o maior multiplicador ativo
-  const clickBuffs = activeBuffs.filter(b => b.type === 'click' && b.mul);
-  const maxMul = clickBuffs.reduce((m,b)=> Math.max(m, b.mul || 0), 0);
-  return 1 + (permanentItemBonuses.click || 0) + maxMul;
-}
-
-// (Trecho antigo de trade removido — trade agora usa o motor de mercado contínuo)
-/* =========================
-   SAVE / LOAD + OFFLINE
-   ========================= */
-
-const OFFLINE_LIMIT = 24 * 60 * 60 * 1000; // 24h
-
-// renda passiva e juros (usar intervalo variável)
-function setupPassiveInterval(){
-  if(passiveIntervalId) clearInterval(passiveIntervalId);
-  passiveIntervalId = setInterval(()=>{
-    // aplicar renda passiva com multiplicadores (prestígio e compra global)
-    const globalMul = prestigeShop.globalMultiplier ? 1.10 : 1;
-    const passiveBoostMul = prestigeShop.passiveBoost ? 1.20 : 1;
-    const ganho = Math.floor(rendaPassiva * getPrestigeMultiplier() * passiveBoostMul * globalMul * (1 + (permanentItemBonuses.passive || 0)));
-    dinheiro += ganho; // incluir bônus permanentes de itens (ex: Cofre de Ouro)
-    // aplicar juros do empréstimo apenas enquanto o jogo está ativo
-    if(emprestimo > 0){
-      emprestimo = Math.ceil(emprestimo * (1 + emprestimoTaxa));
+function updateActiveTrade() {
+    if(!activeTrade) return;
+    const current = market.price;
+    const diffPct = (current - activeTrade.entry) / activeTrade.entry;
+    const rawPnlPct = activeTrade.type === 'up' ? diffPct : -diffPct;
+    const leveragedPnl = rawPnlPct * activeTrade.leverage;
+    
+    const profit = Math.floor(activeTrade.amount * leveragedPnl);
+    const el = document.getElementById('tradePnl');
+    el.innerText = (profit > 0 ? "+" : "") + profit;
+    el.style.color = profit >= 0 ? varCSS('--success') : varCSS('--danger');
+    
+    if(leveragedPnl <= -1) {
+        closeTrade(true);
     }
-    atualizar();
-  }, passiveIntervalMs);
-}
-// iniciar intervalo padrão
-setupPassiveInterval();
-// acompanhar tempo de jogo total
-setInterval(()=>{ playTimeMs += 1000; }, 1000);
-
-let __lastSaveAt = 0; const __saveThrottleMs = 2000; // limite mínimo entre gravações
-let __saveCorrupted = false;
-function salvar(force = false){
-  // se o save local foi marcado como corrompido, NÃO sobrescrevemos automaticamente
-  if(__saveCorrupted && !force){
-    console.warn('Save local marcado como corrompido; ação manual necessária para sobrescrever');
-    const el = document.getElementById('saveStatus'); if(el) el.innerText = 'Save local corrompido — ação manual necessária';
-    return;
-  }
-  // throttle simples: evita gravar em localStorage muitas vezes por segundo
-  if(!force && Date.now() - __lastSaveAt < __saveThrottleMs) return;
-  const payload = {
-    dinheiro,
-    renda,
-    nivel,
-    rendaPassiva,
-    custoUpgrade,
-    veiculosComprados,
-    casasCompradas,
-    marketPriceVal,
-    prestigios,
-    emprestimo,
-    emprestimoTaxa,
-    emprestimoTakenAt,
-    prestigeShop,
-    passiveIntervalMs,
-    galleryItems,
-    permanentItemBonuses,
-    activeBuffs,
-    playerName,
-    playTimeMs,
-    playerOptOut,
-    lastSave: Date.now()
-  };
-  try{
-    console.debug('payload de save a ser gravado:', payload);
-    localStorage.setItem('save', JSON.stringify(payload));
-    __lastSaveAt = Date.now();
-    __saveCorrupted = false; // gravação bem sucedida corrige o estado
-    const el = document.getElementById('saveStatus');
-    if(el) el.innerText = 'Último save: ' + new Date(__lastSaveAt).toLocaleString();
-    // para depuração silenciosa
-    console.info('Save salvo em', new Date(__lastSaveAt).toISOString());
-    // envio automático para rankings ao salvar forçado, respeitando opt-out
-    if(playerName && !playerOptOut && force){ try{ autoUpdateRankings(); }catch(e){ console.warn('Erro no autoUpdateRankings', e); } }
-  }catch(e){
-    console.error('Erro ao salvar', e);
-    alert('Não foi possível salvar localmente: ' + (e && e.message ? e.message : e));
-  }
-} 
-
-function carregar(){
-  const raw = localStorage.getItem('save');
-  console.info('carregar(): conteúdo bruto do save:', raw);
-  if(!raw) return;
-
-  try{
-    const s = JSON.parse(raw);
-    // Validação simples: garantir que o objeto tem a estrutura mínima
-    if(!s || typeof s !== 'object' || (typeof s.dinheiro === 'undefined' && typeof s.lastSave === 'undefined')){
-      throw new Error('Formato de save inválido');
-    }
-
-    dinheiro = typeof s.dinheiro === 'number' ? s.dinheiro : (s.dinheiro ? Number(s.dinheiro) : 0);
-    renda = s.renda || 1;
-    nivel = s.nivel || 1;
-    rendaPassiva = s.rendaPassiva || 0;
-    custoUpgrade = s.custoUpgrade || 100;
-    veiculosComprados = s.veiculosComprados || [];
-    casasCompradas = s.casasCompradas || [];
-    marketPriceVal = s.marketPriceVal || initialPrice;
-    prestigios = s.prestigios || 0;
-    // carregar estado de empréstimo
-    emprestimo = s.emprestimo || 0;
-    emprestimoTaxa = typeof s.emprestimoTaxa === 'number' ? s.emprestimoTaxa : emprestimoTaxa;
-    emprestimoTakenAt = s.emprestimoTakenAt || 0;
-    // carregar loja de prestígios e intervalos
-    prestigeShop = s.prestigeShop || prestigeShop;
-    passiveIntervalMs = s.passiveIntervalMs || passiveIntervalMs;
-    // carregar itens e buffs
-    galleryItems = s.galleryItems || galleryItems;
-    permanentItemBonuses = s.permanentItemBonuses || permanentItemBonuses;
-    activeBuffs = (s.activeBuffs || []).filter(b => !b.expires || b.expires > Date.now());
-    playerOptOut = !!s.playerOptOut;
-    if(prestigeShop.autoClicker) startAutoClicker();
-
-    // carregar nome do jogador e tempo de jogo (se existir)
-    playerName = typeof s.playerName === 'string' ? s.playerName : '';
-    playerNameSet = !!s.playerName || !!localStorage.getItem('playerNameChosen');
-    playTimeMs = s.playTimeMs || 0;
-    sessionStart = Date.now();
-
-    /* ===== GANHOS OFFLINE ===== */
-    if(s.lastSave){
-      const agora = Date.now();
-      let tempoOffline = Math.min(agora - s.lastSave, OFFLINE_LIMIT);
-      const ciclos = Math.floor(tempoOffline / 30000);
-      const ganhoOffline = ciclos * Math.floor(rendaPassiva * (1 + ((s.prestigios || 0) * 0.02)));
-      dinheiro += ganhoOffline;
-    }
-
-    // carregado com sucesso — limpar flag de corrompido e atualizar status
-    __saveCorrupted = false;
-    const el = document.getElementById('saveStatus'); if(el) el.innerText = 'Último save: ' + new Date(s.lastSave||Date.now()).toLocaleString();
-
-    // atualiza timestamp para prevenir exploit
-    salvar(true);
-
-    // perguntar nome do jogador apenas uma vez (se ainda não tivermos perguntado)
-    if(!localStorage.getItem('playerNameChosen') && !playerName){ ensurePlayerName(); }
-    // carregar leaderboards locais e mostrar página padrão
-    loadLeaderboards();
-    renderRankingTab('money');
-
-  }catch(e){
-    console.warn('Save inválido', e);
-    // preservar o conteúdo corrompido para análise e impedir sobrescrita automática
-    try{
-      const key = 'save_corrupted_' + Date.now();
-      localStorage.setItem(key, raw);
-      __saveCorrupted = true;
-      const el = document.getElementById('saveStatus'); if(el) el.innerText = 'Save local corrompido — ' + key + ' preservado';
-      alert('Save local detectado como corrompido. Criei uma cópia em "' + key + '" para preservação. Importe um backup ou clique em "Salvar Agora" para sobrescrever.');
-    }catch(err){ console.error('Erro ao preservar save corrompido', err); }
-  }
 }
 
-
-
-function exportarSave(){
-  salvar(true);
-  const data = localStorage.getItem('save');
-  if(!data){ alert('Nenhum save encontrado para exportar'); return; }
-  try{
-    const blob = new Blob([data],{type:'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'sim_save.json'; a.click();
-    URL.revokeObjectURL(url);
-  }catch(e){ console.error('Erro ao exportar', e); alert('Erro ao exportar: ' + (e && e.message ? e.message : e)); }
+function closeTrade(forced = false) {
+    if(!activeTrade) return;
+    const current = market.price;
+    const diffPct = (current - activeTrade.entry) / activeTrade.entry;
+    const rawPnlPct = activeTrade.type === 'up' ? diffPct : -diffPct;
+    const profit = Math.floor(activeTrade.amount * rawPnlPct * activeTrade.leverage);
+    
+    const totalReturn = activeTrade.amount + profit;
+    if(totalReturn > 0) STATE.money += totalReturn;
+    
+    if(forced) alert("Posição LIQUIDADA! Você perdeu o investimento.");
+    else alert(`Trade fechado. Resultado: ${profit}`);
+    
+    activeTrade = null;
+    document.getElementById('activeTradeInfo').classList.add('hidden');
+    document.getElementById('openTradeControls').classList.remove('hidden');
+    renderAll();
 }
 
- 
-function importarSave(e){
-  const f = e.target.files[0]; if(!f) return;
-  const r = new FileReader();
-  r.onload = () => {
-    try{
-      const s = JSON.parse(r.result);
-      dinheiro = s.dinheiro || 0; renda = s.renda || 1; nivel = s.nivel || 1; rendaPassiva = s.rendaPassiva || 0; custoUpgrade = s.custoUpgrade || 100;
-      veiculosComprados = s.veiculosComprados || []; casasCompradas = s.casasCompradas || [];
-      marketPriceVal = s.marketPriceVal || initialPrice; priceHistory = Array(historyMax).fill(marketPriceVal);
-      galleryItems = s.galleryItems || [];
-      permanentItemBonuses = s.permanentItemBonuses || {passive:0,click:0};
-      activeBuffs = (s.activeBuffs || []).filter(b => !b.expires || b.expires > Date.now());
-      playerName = s.playerName || '';
-      if(s.playerName) localStorage.setItem('playerNameChosen','1');
-      // registrar nome importado como escolhido (único localmente)
-      if(playerName){ loadChosenNames(); if(!chosenNames.some(n=>n.toLowerCase()===playerName.toLowerCase())){ chosenNames.push(playerName); saveChosenNames(); } }
-      playerOptOut = !!s.playerOptOut;
-      playTimeMs = s.playTimeMs || 0;
-      salvar(true); atualizar(); alert('Save importado com sucesso!');
-    }catch(err){ alert('Arquivo inválido'); }
-  };
-  r.readAsText(f); e.target.value = '';
-}
-function apagarSave(){if(confirm('Apagar save?')){localStorage.removeItem('save');dinheiro=0;renda=1;nivel=1;rendaPassiva=0;custoUpgrade=100;prestigios=0;veiculosComprados=[];casasCompradas=[];marketPriceVal = initialPrice; priceHistory = Array(historyMax).fill(marketPriceVal); // reset loan state as well
-    emprestimo = 0; emprestimoTakenAt = 0; emprestimoTaxa = 0.02; atualizar();alert('Save apagado e dívida zerada');} }
-
-// ------------------
-// Player & Rankings
-// ------------------
-function ensurePlayerName(){
-  // perguntar apenas uma vez por usuário (persistido em localStorage)
-  if(localStorage.getItem('playerNameChosen')) return;
-  loadChosenNames();
-  while(true){
-    const name = prompt('Bem-vindo! Escolha seu nome (apenas uma vez):');
-    if(name === null){ playerName = ''; localStorage.setItem('playerNameChosen','1'); salvar(true); return; }
-    const trimmed = name.trim().substring(0,20);
-    if(!trimmed){ alert('Nome inválido. Tente novamente.'); continue; }
-    // unicidade case-insensitive
-    const exists = chosenNames.some(n => n.toLowerCase() === trimmed.toLowerCase());
-    if(exists){ alert('Nome já existe. Por favor escolha outro (ex: ' + trimmed + '1)'); continue; }
-    // válido e único
-    playerName = trimmed;
-    chosenNames.push(playerName);
-    saveChosenNames();
-    localStorage.setItem('playerNameChosen','1');
-    salvar(true);
-
-    return;
-  }
+/* =========================================
+   LOAN SYSTEM
+   ========================================= */
+function takeLoan() {
+    const val = parseFloat(document.getElementById('loanInput').value);
+    if(!val || val <= 0) return;
+    const limit = Math.max(1000, STATE.money * 2); 
+    if(STATE.loan.debt + val > limit) return alert(`Banco negou. Limite de dívida: ${limit}`);
+    
+    STATE.money += val;
+    STATE.loan.debt += val;
+    renderAll();
 }
 
-function definePlayerName(){
-  // Permite ao usuário definir/alterar o nome a partir das configurações
-  loadChosenNames();
-  const name = prompt('defina seu nome');
-  if(name === null) return; // cancelou
-  const trimmed = name.trim().substring(0,20);
-  if(!trimmed){ alert('Nome inválido.'); return; }
-  // unicidade: permite manter o próprio nome, mas impede escolher nome já usado por outro
-  const exists = chosenNames.some(n => n.toLowerCase() === trimmed.toLowerCase());
-  if(exists && (!playerName || trimmed.toLowerCase() !== playerName.toLowerCase())){ alert('Nome já existe. Escolha outro.'); return; }
-  if(!exists) { chosenNames.push(trimmed); saveChosenNames(); }
-  playerName = trimmed;
-  localStorage.setItem('playerNameChosen','1');
-  salvar(true);
-  renderSettings();
-  alert('Nome definido: ' + playerName);
-}  
-
-function loadLeaderboards(){
-  try{ leaderboards = JSON.parse(localStorage.getItem('leaderboards') || '{"money":[],"time":[]}'); }catch(e){ leaderboards = {money:[], time:[]}; }
-}
-function saveLeaderboards(){ localStorage.setItem('leaderboards', JSON.stringify(leaderboards)); }
-
-function loadChosenNames(){
-  try{ chosenNames = JSON.parse(localStorage.getItem('chosenNames') || '[]'); }catch(e){ chosenNames = []; }
-}
-function saveChosenNames(){ localStorage.setItem('chosenNames', JSON.stringify(chosenNames)); }
-
-function submitToLeaderboards(){
-  if(!playerName){ ensurePlayerName(); if(!playerName){ alert('Nome não definido; não foi possível enviar para o ranking'); return; } }
-  if(playerOptOut){ alert('Você optou por não entrar nos rankings. Desative essa opção nas Configurações para enviar.'); return; }
-  const moneyVal = dinheiro;
-  const timeVal = playTimeMs + (Date.now() - sessionStart);
-  const upsert = (arr, val)=>{
-    const idx = arr.findIndex(x=>x.name === playerName);
-    if(idx >= 0) arr[idx] = {name: playerName, val}; else arr.push({name: playerName, val});
-    arr.sort((a,b)=> b.val - a.val);
-    if(arr.length>10) arr.length = 10; // manter top 10
-  };
-  upsert(leaderboards.money, moneyVal);
-  upsert(leaderboards.time, timeVal);
-  saveLeaderboards();
-  renderRankingTab(currentRankingTab||'money');
-  alert('Enviado para rankings!');
+function payLoan() {
+    const val = parseFloat(document.getElementById('loanInput').value);
+    if(!val || val <= 0) return;
+    const toPay = Math.min(val, STATE.loan.debt);
+    if(STATE.money >= toPay) {
+        STATE.money -= toPay;
+        STATE.loan.debt -= toPay;
+        renderAll();
+    } else alert("Dinheiro insuficiente.");
 }
 
-function mostrarRankingsTab(tab){ document.getElementById('rankings').classList.remove('hidden'); document.getElementById('loja').classList.add('hidden'); mostrarLojaTab('veiculos'); renderRankingTab(tab); }
-
-function renderRankingTab(tab){ currentRankingTab = tab || 'money'; const el = document.getElementById('rankList'); if(!el) return; const items = (leaderboards[tab]||[]).slice(0,10); let h = '<ol>'; items.forEach(it=>{ const val = tab === 'money' ? (it.val).toLocaleString() : formatTime(it.val); h += `<li>${escapeHtml(it.name)} — ${val}</li>`; }); h += '</ol>'; el.innerHTML = h; renderSettings(); const noteEl = document.getElementById('rankNote'); if(noteEl){ noteEl.innerText = playerName ? `Seu nome: ${playerName} (definido apenas uma vez).` : 'Você ainda não definiu um nome.'; } }
-
-function renderSettings(){ const nameEl = document.getElementById('settingsName'); const moneyEl = document.getElementById('settingsMoney'); const chk = document.getElementById('optOutCheckbox'); if(nameEl) nameEl.innerText = playerName || '-'; if(moneyEl) moneyEl.innerText = (dinheiro || 0).toLocaleString(); if(chk){ chk.checked = !!playerOptOut; chk.onchange = toggleOptOut; } }
-
-function toggleOptOut(){ playerOptOut = !!document.getElementById('optOutCheckbox').checked; salvar(true); if(playerOptOut){ removePlayerFromLeaderboards(); saveLeaderboards(); renderRankingTab(currentRankingTab||'money'); } }
-
-function removePlayerFromLeaderboards(){ if(!playerName) return; ['money','time'].forEach(k=>{ leaderboards[k] = (leaderboards[k]||[]).filter(x=> x.name.toLowerCase() !== playerName.toLowerCase()); }); }
-
-function autoUpdateRankings(){ // executa a cada 2 minutos
-  if(!playerName || playerOptOut) return;
-  loadLeaderboards();
-  const moneyVal = dinheiro;
-  const timeVal = playTimeMs + (Date.now() - sessionStart);
-  const upsert = (arr, val)=>{
-    const idx = arr.findIndex(x=>x.name === playerName);
-    if(idx >= 0) arr[idx] = {name: playerName, val}; else arr.push({name: playerName, val});
-    arr.sort((a,b)=> b.val - a.val);
-    if(arr.length>10) arr.length = 10;
-  };
-  upsert(leaderboards.money, moneyVal);
-  upsert(leaderboards.time, timeVal);
-  saveLeaderboards();
-  renderRankingTab(currentRankingTab||'money');
-}
-
-// iniciar auto-update a cada 2 minutos
-setInterval(autoUpdateRankings, 2*60*1000);
-
-function formatTime(ms){ const s = Math.floor(ms/1000); const h = Math.floor(s/3600); const m = Math.floor((s%3600)/60); const sec = s%60; return (h>0?h+'h ':'') + (m>0?m+'m ':'') + sec+'s'; }
-function escapeHtml(str){ return String(str).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-
-/* Tutorial inicial (mostra apenas na primeira vez) */
-const tutorialSteps = [
-  'Bem-vindo ao Simulador de Negócios! Clique em "Ganhar dinheiro" para obter sua primeira renda.',
-  'Use "Upgrade" para aumentar sua renda por clique e subir de nível.',
-  'Acesse "Investimentos" para comprar ativos que geram renda passiva automaticamente.',
-  'Na aba "Gráficos" você pode abrir trades de alto risco; use as setas para abrir e "Fechar Trade" para encerrar.',
-  'Abra "Loja" e "Galeria" para comprar itens e ver suas compras. Boa sorte!'
-];
-let tutorialIndex = 0;
-function renderTutorial(){
-  const tutorialOverlay = document.getElementById('tutorialOverlay');
-  const tutorialStepsEl = document.getElementById('tutorialSteps');
-  const tutorialProg = document.getElementById('tutorialProgress');
-  const prevBtn = document.querySelector('.tutorialBtn.secondary');
-  const nextBtn = document.querySelector('.tutorialBtn:not(.secondary)');
-  const skipBtn = document.getElementById('tutorialSkip');
-  if(!tutorialOverlay || !tutorialStepsEl || !tutorialProg) return;
-  tutorialStepsEl.innerText = tutorialSteps[tutorialIndex];
-  tutorialProg.innerText = `Passo ${tutorialIndex+1} de ${tutorialSteps.length}`;
-  prevBtn.disabled = tutorialIndex===0;
-  if(tutorialIndex === tutorialSteps.length - 1){
-    nextBtn.style.display = 'none';
-    skipBtn.textContent = 'Começar';
-  }else{
-    nextBtn.style.display = '';
-    skipBtn.textContent = 'Pular';
-  }
-}
-function showTutorial(force=false){
-  if(!force && localStorage.getItem('tutorial_seen')) return;
-  tutorialIndex = 0;
-  const tutorialOverlay = document.getElementById('tutorialOverlay');
-  if(!tutorialOverlay) return;
-  tutorialOverlay.classList.remove('hidden');
-  renderTutorial();
-}
-function nextTutorial(){ if(tutorialIndex < tutorialSteps.length - 1){ tutorialIndex++; renderTutorial(); } else closeTutorial(true); }
-function prevTutorial(){ if(tutorialIndex>0){ tutorialIndex--; renderTutorial(); } }
-function closeTutorial(markSeen=false){
-  const tutorialOverlay = document.getElementById('tutorialOverlay');
-  if(tutorialOverlay) tutorialOverlay.classList.add('hidden');
-  if(markSeen) localStorage.setItem('tutorial_seen','1');
-}
-
-function startGame(){
-  // Fecha o tutorial e marca como visto
-  closeTutorial(true);
-  // Dá um pequeno bônus inicial apenas uma vez
-  if(!localStorage.getItem('tutorial_bonus_given')){
-    dinheiro += 10;
-    atualizar();
-    localStorage.setItem('tutorial_bonus_given','1');
-  }
-  // Foca no botão de ganhar dinheiro para orientar o jogador
-  const btn = document.querySelector('button[onclick="ganharDinheiro()"]');
-  if(btn) btn.focus();
-}
-
-// === Atualizações / Logs ===
-function addLog(msg){
-  const logs = JSON.parse(localStorage.getItem('update_logs')||'[]');
-  logs.unshift({msg:msg, ts: Date.now()});
-  localStorage.setItem('update_logs', JSON.stringify(logs));
-  renderLogs();
-}
-
-function seedUpdateLogs(){
-  const version = '2025-12-31-1';
-  if(localStorage.getItem('update_version') === version) return;
-  addLog('Atualização: Poção agora dura 2 minutos; buffs não acumulam; sistema de Caixas adicionado.');
-  addLog('Rankings: abas Dinheiro e Tempo adicionadas; atualização automática a cada 2 minutos; top 10 mantido.');
-  addLog('Configurações: agora você pode definir seu nome manualmente; opção de excluir-se dos rankings (opt-out).');
-  addLog('Envio automático para ranking ao salvar forçado ativado.');
-  localStorage.setItem('update_version', version);
-}
-function renderLogs(){
-  const fullEl = document.getElementById('updateLogsList');
-  if(!fullEl) return;
-  const logs = JSON.parse(localStorage.getItem('update_logs')||'[]');
-  const readAt = Number(localStorage.getItem('logs_read_at')||0);
-  fullEl.innerHTML = logs.map(l=>{
-    const date = new Date(l.ts).toLocaleString();
-    const isNew = l.ts > readAt ? '<span class="changelog-new">Novo</span>' : '';
-    return `<div class="changelog-item">${isNew}<div style="font-size:13px;color:#ddd">${date}</div><div>${l.msg}</div></div>`;
-  }).join('') || '<div class="changelog-item">Nenhuma atualização registrada</div>';
-}
-function markLogsRead(){
-  localStorage.setItem('logs_read_at', Date.now());
-  renderLogs();
-}
-function dismissAnnouncement(){
-  const el = document.getElementById('announcementBar');
-  if(el) el.classList.add('hidden');
-  localStorage.setItem('announcement_dismissed','1');
-  markLogsRead();
-}
-function requiredForNextPrestige(){ return (prestigios + 1) * 1000000; }
-function attemptPrestige(){
-  const req = requiredForNextPrestige();
-  if(dinheiro < req) return alert(`Você precisa de ${req.toLocaleString()} para prestigiar.`);
-  if(!confirm(`Prestigiar resetará seu progresso e concederá 1 medalha. Deseja prosseguir? (Requisito: ${req.toLocaleString()})`)) return;
-  prestigios++;
-  // atualizar log com novo formato de bônus (5% por prestígio)
-  addLog(`Prestígio alcançado! Medalhas: ${prestigios} — +${(prestigios*5)}% em renda por clique e passiva`);
-  // remover dívida ao prestigiar
-  if(emprestimo && emprestimo > 0){
-    emprestimo = 0; emprestimoTakenAt = 0; emprestimoTaxa = 0.02;
-    addLog('Dívida de empréstimo anulada ao prestigiar.');
-  }
-
-  // reset básico (mantém medalhas e compras na loja de prestígios)
-  dinheiro = 0; renda = 1; nivel = 1; rendaPassiva = 0; custoUpgrade = 100;
-  veiculosComprados = []; casasCompradas = [];
-  marketPriceVal = initialPrice; priceHistory = Array(historyMax).fill(marketPriceVal);
-  salvar();
-  renderPrestigios();
-  updateEndgameUnlocks();
-  atualizar();
-  alert('Prestígio realizado! Você recebeu 1 medalha.');
-}
-function renderPrestigios(){
-  const elCount = document.getElementById('prestigeCount');
-  const elBonus = document.getElementById('prestigeBonus');
-  const elReq = document.getElementById('prestigeReq');
-  const elMedals = document.getElementById('medals');
-  const medalRow = document.getElementById('medalRow');
-  const previewEl = document.getElementById('prestigePreview');
-  const btn = document.getElementById('prestigeBtn');
-  const req = requiredForNextPrestige();
-  // atualizar a UI da loja de prestígios
-  const buyAutoBtn = document.getElementById('buyAutoClicker');
-  const buyPassiveBtn = document.getElementById('buyPassiveBoost');
-  const buySpeedBtn = document.getElementById('buyPassiveSpeed');
-  const buyDiscountBtn = document.getElementById('buyDiscount');
-  const buyGlobalBtn = document.getElementById('buyGlobalMul');
-  const speedCountEl = document.getElementById('passiveSpeedCount');
-
-  if(buyAutoBtn) { buyAutoBtn.disabled = prestigeShop.autoClicker || prestigios < 2; buyAutoBtn.textContent = prestigeShop.autoClicker ? 'Comprado' : 'Comprar'; }
-  if(buyPassiveBtn) { buyPassiveBtn.disabled = prestigeShop.passiveBoost || prestigios < 2; buyPassiveBtn.textContent = prestigeShop.passiveBoost ? 'Comprado' : 'Comprar'; }
-  if(buySpeedBtn) { buySpeedBtn.disabled = prestigeShop.passiveSpeedCount >= 5 || prestigios < 1; buySpeedBtn.textContent = (prestigeShop.passiveSpeedCount >=5) ? 'Máximo' :'Comprar'; }
-  if(speedCountEl) speedCountEl.innerText = `(${prestigeShop.passiveSpeedCount}/5)`;
-  if(buyDiscountBtn) { buyDiscountBtn.disabled = prestigeShop.discount || prestigios < 5; buyDiscountBtn.textContent = prestigeShop.discount ? 'Comprado' : 'Comprar'; }
-  if(buyGlobalBtn) { buyGlobalBtn.disabled = prestigeShop.globalMultiplier || prestigios < 3; buyGlobalBtn.textContent = prestigeShop.globalMultiplier ? 'Comprado' : 'Comprar'; }
-
-
-  if(elCount) elCount.innerText = prestigios;
-  if(elBonus) elBonus.innerText = (prestigios*2) + '%';
-  if(elReq) elReq.innerText = req.toLocaleString();
-  if(elMedals) elMedals.innerText = prestigios;
-
-  if(medalRow){
-    if(prestigios === 0){ medalRow.innerHTML = '<span style="color:#ccc">Nenhuma medalha ainda</span>'; }
-    else{
-      let html = '';
-      for(let i=1;i<=prestigios;i++) html += `<span title="Medalha ${i}" style="font-size:20px;margin-right:6px">🏅</span>`;
-      medalRow.innerHTML = html;
-    }
-  }
-
-  if(previewEl){
-    const currentBonus = prestigios * 2;
-    const nextBonus = (prestigios + 1) * 2;
-    const nextMedals = prestigios + 1;
-    const nextReqAfter = (prestigios + 2) * 1000000;
-    const canPrestige = dinheiro >= req;
-
-    previewEl.innerHTML = `
-      <div>Ao prestigiar agora: <strong>+2% por prestígio</strong> → bônus: <strong>${currentBonus}% → ${nextBonus}%</strong></div>
-      <div style="margin-top:6px">Medalhas após prestigiar: <strong>${nextMedals}</strong></div>
-      <div style="margin-top:6px">Requisito atual: <strong>${req.toLocaleString()}</strong> — Próximo requisito após prestigiar: <strong>${nextReqAfter.toLocaleString()}</strong></div>
-      <div style="margin-top:6px;color:${canPrestige ? '#0f0' : '#f33'}">${canPrestige ? 'Você pode prestigiar agora.' : 'Você ainda não tem dinheiro suficiente para prestigiar.'}</div>
-    `;
-  }
-
-  if(btn){
-    btn.textContent = `Prestigiar (Requisito: ${req.toLocaleString()})`;
-    btn.disabled = dinheiro < req;
-  }
-  // mostrar bônus atual e limitar no preview
-  if(elBonus) elBonus.innerText = Math.round((getPrestigeMultiplier()-1)*100) + '% (máx 50%)';
-  // salvar alterações de shop/status
-  salvar();
-}
-
-function buyPrestigeItem(item){
-  if(item === 'autoClicker'){
-    if(prestigios < 2) return alert('Medalhas insuficientes');
-    if(prestigeShop.autoClicker) return alert('Já comprado');
-    prestigios -= 2; prestigeShop.autoClicker = true; addLog('Auto Clicker comprado — cliques automáticos ativados (0.5s)');
-    startAutoClicker();
-  } else if(item === 'passiveBoost'){
-    if(prestigios < 2) return alert('Medalhas insuficientes');
-    if(prestigeShop.passiveBoost) return alert('Já comprado');
-    prestigios -= 2; prestigeShop.passiveBoost = true; addLog('+20% de renda passiva comprado');
-  } else if(item === 'passiveSpeed'){
-    if(prestigios < 1) return alert('Medalhas insuficientes');
-    if(prestigeShop.passiveSpeedCount >= 5) return alert('Já atingiu o máximo de reduções de intervalo');
-    prestigios -= 1; prestigeShop.passiveSpeedCount += 1; passiveIntervalMs = Math.max(20000, passiveIntervalMs - 2000); setupPassiveInterval(); addLog('Redução de intervalo de renda passiva adquirida (-2s)');
-  } else if(item === 'discount'){
-    if(prestigios < 5) return alert('Medalhas insuficientes');
-    if(prestigeShop.discount) return alert('Já comprado');
-    prestigios -= 5; prestigeShop.discount = true; addLog('Desconto permanente de 10% adquirido');
-  } else if(item === 'globalMultiplier'){
-    if(prestigios < 3) return alert('Medalhas insuficientes');
-    if(prestigeShop.globalMultiplier) return alert('Já comprado');
-    prestigios -= 3; prestigeShop.globalMultiplier = true; addLog('Multiplicador global +10% para clickers e investimentos adquirido');
-  }
-  renderPrestigios();
-  atualizar();
-}
-
-function startAutoClicker(){
-  if(autoClickerIntervalId) return;
-  autoClickerIntervalId = setInterval(()=>{
-    if(prestigeShop.autoClicker) ganharDinheiro(); else stopAutoClicker();
-  }, 500);
-}
-function stopAutoClicker(){ if(autoClickerIntervalId){ clearInterval(autoClickerIntervalId); autoClickerIntervalId = null; } }
-function updateEndgameUnlocks(){
-  document.querySelectorAll('.endgame').forEach(el=>{
-    const req = Number(el.getAttribute('data-required') || 0);
-    const btn = el.querySelector('button');
-    if(prestigios >= req){
-      el.classList.remove('locked');
-      if(btn) { btn.disabled = false; btn.style.opacity = 1; btn.textContent = 'Comprar'; }
+/* =========================================
+   SMART AI & RANKING (COMPETITIVE)
+   ========================================= */
+function initRanking() {
+    const saved = localStorage.getItem('fakePlayers');
+    if(saved) {
+        fakePlayers = JSON.parse(saved);
     } else {
-      el.classList.add('locked');
-      if(btn) { btn.disabled = true; btn.style.opacity = 0.5; btn.textContent = `Bloqueado - Requer ${req} medalhas`; }
+        const personas = [
+            { name: "Elon M.", strategy: "risk", income: 20 },
+            { name: "Jeff B.", strategy: "steady", income: 15 },
+            { name: "Warren B.", strategy: "saver", income: 10 },
+            { name: "Satoshi N.", strategy: "risk", income: 25 },
+            { name: "Mark Z.", strategy: "steady", income: 18 }
+        ];
+        fakePlayers = personas.map(p => ({
+            name: p.name,
+            money: Math.floor(Math.random() * 2000),
+            level: Math.floor(Math.random() * 5) + 1,
+            income: p.income,
+            strategy: p.strategy
+        }));
     }
-  });
 }
 
-function initLogs(){
-  const key = 'update_logs';
-  // substituir todas as logs antigas pelas mensagens atuais
-  const seed = [
-    {msg:'Adicionados 5 novos veículos: XE, BMW 320i, Audi A3, Toyota Corolla, Honda Civic', ts: Date.now()},
-    {msg:'Adicionadas 5 novas casas (Studio, Casa Moderna, Townhouse, Fazenda, Villa)', ts: Date.now() - 1000*60*60},
-    {msg:'Sistema de Empréstimos adicionado — peça empréstimos com juros e pague quando desejar', ts: Date.now() - 1000*60*60*2},
-    {msg:'Logs reiniciados — antigas entradas removidas e substituídas pelas mensagens atuais', ts: Date.now() - 1000*60*60*3}
-  ];
-  localStorage.setItem(key, JSON.stringify(seed));
-  // marcar como não lidas para que o jogador veja as atualizações
-  localStorage.setItem('logs_read_at','0');
+function updateRankingSim() {
+    // Calcula velocidade de crescimento do jogador para a IA acompanhar
+    const playerVelocity = (STATE.income * 2) + STATE.passive + 10;
+    
+    fakePlayers.forEach(p => {
+        // Renda base da IA
+        let gain = p.income + (Math.random() * playerVelocity * 0.5);
+        
+        // Simulação de ações baseada em estratégia
+        const actionRoll = Math.random();
+        
+        if(p.strategy === "risk" && actionRoll < 0.2) {
+            // IA faz "trade" ou investimento arriscado
+            const result = (Math.random() - 0.4); // Viés positivo leve
+            gain += gain * result * 5; 
+            if(result > 0.3) triggerAiNews(p.name, "acertou um trade alavancado!");
+        } 
+        else if(p.strategy === "steady" && actionRoll < 0.1) {
+            // IA compra imóvel
+            p.income += 10; 
+            gain -= 500; // Gasta dinheiro
+            triggerAiNews(p.name, "adquiriu novos imóveis.");
+        }
+        else if(p.strategy === "saver") {
+            // Apenas acumula juros compostos
+            gain *= 1.05;
+        }
 
-  // oculta anúncio se já dispensado anteriormente
-  const ann = localStorage.getItem('announcement_dismissed');
-  if(ann === '1'){
-    const el = document.getElementById('announcementBar');
-    if(el) el.classList.add('hidden');
-  }
-  renderLogs();
-  renderPrestigios();
-  updateEndgameUnlocks();
-}
-// Funções utilitárias para desenvolvedores/testers
-function initDevTools(){
-  try{
-    const params = new URLSearchParams(location.search);
-    const dev = params.get('dev') === '1' || localStorage.getItem('dev_mode') === '1';
-    if(dev){
-      const p = document.getElementById('devPanel'); if(p) p.style.display = 'block';
-      localStorage.setItem('dev_mode','1');
-      console.info('Dev mode ativado');
+        p.money += Math.floor(gain);
+        if(p.money < 0) p.money = 100; // Evita falência total
+
+        // Evolução de nível
+        if(p.money > p.level * 2000 && Math.random() < 0.1) {
+            p.level++;
+            triggerAiNews(p.name, `subiu para o Nível ${p.level}!`);
+        }
+    });
+    
+    localStorage.setItem('fakePlayers', JSON.stringify(fakePlayers));
+    if(document.getElementById('view-ranking').classList.contains('active')) {
+        renderRanking('money');
     }
-  }catch(e){/* ignore */}
 }
-function toggleDevTools(){ const p = document.getElementById('devPanel'); if(!p) return; p.style.display = (p.style.display==='block') ? 'none' : 'block'; localStorage.setItem('dev_mode', p.style.display==='block' ? '1' : '0'); }
-document.addEventListener('keydown', (e)=>{ if(e.ctrlKey && e.shiftKey && e.key.toLowerCase()==='d'){ toggleDevTools(); } });
 
-function devAddMoney(val){
-  const v = typeof val === 'number' ? val : Number(document.getElementById('devMoneyInput').value)||0;
-  dinheiro += v;
-  salvar(true);
-  atualizar();
-  console.info('Dev: adicionou dinheiro', v);
+function triggerAiNews(name, action) {
+    // Só mostra notícia se for sorteado para evitar spam
+    if(Math.random() < 0.15) {
+        addNews(`${name} ${action}`);
+    }
 }
-function devAddPrestige(){ const v = Number(document.getElementById('devPrestigeInput').value)||0; prestigios += v; renderPrestigios(); salvar(true); atualizar(); console.info('Dev: adicionou prestigio', v); }
-function devSetPrestige(v){ prestigios = Number(v)||0; renderPrestigios(); salvar(true); atualizar(); console.info('Dev: set prestige',prestigios);} 
-function devSetLevel(){ const v = Number(document.getElementById('devLevelInput').value)||1; nivel = v; atualizar(); salvar(true); console.info('Dev: set level', v); }
-function devGiveVehicle(){ const name = document.getElementById('devVehicleName').value || 'DevCar'; const price = Number(document.getElementById('devVehiclePrice').value)||0; veiculosComprados.push({nome:name,preco:price}); salvar(true); atualizar(); console.info('Dev: deu veiculo', name); }
-function devGiveHouse(){ const name = document.getElementById('devHouseName').value || 'DevHouse'; const price = Number(document.getElementById('devHousePrice').value)||0; casasCompradas.push({nome:name,preco:price}); rendaPassiva += Math.floor(price/100); salvar(true); atualizar(); console.info('Dev: deu casa', name); }
-function devGiveVehiclesPreset(){ devGiveVehicleHelper('DevCar A',1000); devGiveVehicleHelper('DevCar B',1500); devGiveVehicleHelper('DevCar C',2000); salvar(true); atualizar(); }
-function devGiveVehicleHelper(n,p){ veiculosComprados.push({nome:n,preco:p}); }
-function devGiveHousesPreset(){ devGiveHouseHelper('DevHouse A',10000); devGiveHouseHelper('DevHouse B',20000); devGiveHouseHelper('DevHouse C',50000); salvar(true); atualizar(); }
-function devGiveHouseHelper(n,p){ casasCompradas.push({nome:n,preco:p}); rendaPassiva += Math.floor(p/100); }
-function devReset(){ if(!confirm('Resetar variáveis de desenvolvimento?')) return; dinheiro=0; renda=1; nivel=1; rendaPassiva=0; prestigios=0; veiculosComprados=[]; casasCompradas=[]; salvar(true); atualizar(); console.info('Dev: reset completo'); }
-// Inicializar devtools se parâmetro presente
-initDevTools();
 
-// Carregar save do jogador antes de inicializar logs que podem gravar estado
-carregar();
-// inicializa logs (chama uma vez ao carregar)
-initLogs();
+function renderRanking(criteria) {
+    const list = document.getElementById('rankingList');
+    let all = [...fakePlayers, { name: STATE.name + " (Você)", money: STATE.money, level: STATE.level, isPlayer: true }];
+    all.sort((a, b) => b[criteria] - a[criteria]);
+    
+    list.innerHTML = all.map((p, i) => `
+        <li class="ranking-item ${p.isPlayer ? 'is-player' : ''}">
+            <div style="display:flex; gap:10px; align-items:center;">
+                <span class="rank-pos">#${i+1}</span>
+                <span>${p.name}</span>
+            </div>
+            <strong>${criteria === 'money' ? '$' + formatNumber(p.money) : 'Lvl ' + p.level}</strong>
+        </li>
+    `).join('');
+}
 
-// carregar listas locais e iniciar auto-update de rankings
-loadChosenNames(); loadLeaderboards();
-// semear logs de atualização (apenas uma vez por versão)
-seedUpdateLogs();
-// disparar uma atualização imediata (e depois a cada 2 minutos)
-autoUpdateRankings();
+function updateRankingVisuals() { renderRanking('money'); }
 
-startMarket();
-atualizar();
+/* =========================================
+   CORE LOOPS & UTILS
+   ========================================= */
+function startLoops() {
+    passiveTimer = setInterval(() => {
+        if(STATE.passive > 0) {
+            const prestigeMul = 1 + (STATE.prestige * 0.05);
+            STATE.money += Math.floor(STATE.passive * prestigeMul);
+            updateStats();
+        }
+        if(STATE.loan.debt > 0) {
+            const now = Date.now();
+            if(now - STATE.loan.lastUpdate > 30000) {
+                STATE.loan.debt = Math.floor(STATE.loan.debt * 1.02);
+                STATE.loan.lastUpdate = now;
+                addNews("O banco cobrou juros do seu empréstimo.");
+            }
+        }
+    }, 1000);
 
-// Periodic autosave para reduzir risco de perda ao recarregar
-setInterval(()=> salvar(), 5000); // salva a cada 5s (salvar tem throttle interno)
+    initMarket();
+    marketTimer = setInterval(() => tickMarket(), 500);
 
+    // Save & Ranking Update (5s)
+    saveTimer = setInterval(() => {
+        updateRankingSim();
+        saveGame();
+    }, 5000);
+}
 
-window.addEventListener('beforeunload', () => {
-  salvar();
-});
+function updateStats() {
+    document.getElementById('moneyDisplay').innerText = formatNumber(STATE.money);
+    document.getElementById('incomeDisplay').innerText = formatNumber(STATE.income);
+    document.getElementById('passiveDisplay').innerText = formatNumber(STATE.passive);
+    document.getElementById('headerLevel').innerText = STATE.level;
+    document.getElementById('upgradeCost').innerText = formatNumber(STATE.upgradeCost);
+    document.getElementById('loanDebt').innerText = formatNumber(STATE.loan.debt);
+    
+    const req = 1000000 * (STATE.prestige + 1);
+    const btnP = document.getElementById('btnPrestige');
+    btnP.innerText = `Prestigiar (Req: ${formatNumber(req)})`;
+    btnP.disabled = STATE.money < req;
+}
 
+function renderAll() {
+    updateStats();
+    renderGallery();
+}
 
+function formatNumber(num) {
+    if(num >= 1000000) return (num/1000000).toFixed(2) + 'M';
+    if(num >= 1000) return (num/1000).toFixed(1) + 'k';
+    return num.toLocaleString();
+}
 
-window.addEventListener('beforeunload', () => {
-  salvar(true);
-});
+function varCSS(name) {
+    return getComputedStyle(document.body).getPropertyValue(name).trim();
+}
 
+function addNews(text) {
+    const news = document.getElementById('homeNews');
+    const ticker = document.getElementById('newsTicker');
+    
+    // Efeito visual de atualização
+    news.style.backgroundColor = "#2a3b4c";
+    ticker.style.opacity = 0;
+    
+    setTimeout(() => {
+        ticker.innerText = text;
+        ticker.style.opacity = 1;
+        news.style.backgroundColor = ""; 
+    }, 300);
+}
 
+/* =========================================
+   SAVE / LOAD / SETTINGS
+   ========================================= */
+function saveGame() {
+    STATE.lastSave = Date.now();
+    localStorage.setItem('bizSimSave_v2', JSON.stringify(STATE));
+    document.getElementById('saveStatus').innerText = 'Salvo: ' + new Date().toLocaleTimeString();
+}
 
-// Força save ao descarregar a página (recarregar/fechar)
-window.addEventListener('beforeunload', ()=> salvar(true));
+function loadGame() {
+    const data = localStorage.getItem('bizSimSave_v2');
+    if(data) {
+        const loaded = JSON.parse(data);
+        Object.assign(STATE, loaded);
+        document.getElementById('playerNameDisplay').innerText = STATE.name;
+        document.getElementById('prestigeMedals').innerText = STATE.prestige;
+        document.getElementById('prestigeBonus').innerText = (STATE.prestige * 5) + "%";
+    }
+}
+
+function forceSave() { saveGame(); alert("Jogo Salvo!"); }
+
+function resetGame() {
+    if(confirm("Tem certeza? Isso apaga TUDO.")) {
+        localStorage.removeItem('bizSimSave_v2');
+        localStorage.removeItem('tutCompleted_v2');
+        location.reload();
+    }
+}
+
+function changeName() {
+    const input = document.getElementById('newNameInput');
+    const newName = input.value.trim();
+    if(newName.length > 0 && newName.length <= 15) {
+        STATE.name = newName;
+        document.getElementById('playerNameDisplay').innerText = newName;
+        saveGame();
+        input.value = "";
+        alert("Nome alterado com sucesso!");
+    } else {
+        alert("Nome inválido (use entre 1 e 15 caracteres).");
+    }
+}
+
+function markUpdatesRead() {
+    STATE.updatesRead = GAME_DATA.updates.length;
+    document.getElementById('menuNotif').style.display = 'none';
+    saveGame();
+    alert("Todas lidas!");
+}
+
+function doPrestige() {
+    const req = 1000000 * (STATE.prestige + 1);
+    if(STATE.money < req) return;
+    if(!confirm("Ao prestigiar, você perde dinheiro e ativos, mas ganha medalhas que aumentam seus lucros permanentemente. Continuar?")) return;
+    
+    STATE.prestige++;
+    STATE.money = 0;
+    STATE.income = 1;
+    STATE.level = 1;
+    STATE.passive = 0;
+    STATE.upgradeCost = 100;
+    STATE.houses = [];
+    STATE.vehicles = [];
+    STATE.investments = [];
+    STATE.loan.debt = 0;
+    
+    saveGame();
+    location.reload();
+}
+
+function exportSave() {
+    const data = btoa(JSON.stringify(STATE));
+    prompt("Copie este código:", data);
+}
+function importSave(input) {
+    const data = prompt("Cole o código do save:");
+    if(data) {
+        try {
+            const parsed = JSON.parse(atob(data));
+            localStorage.setItem('bizSimSave_v2', JSON.stringify(parsed));
+            location.reload();
+        } catch(e) { alert("Save inválido"); }
+    }
+}
+
+/* =========================================
+   TUTORIAL
+   ========================================= */
+const TUTORIAL_STEPS = [
+    { target: 'view-home', text: "Bem-vindo! Aqui você ganha seu dinheiro inicial e melhora suas habilidades." },
+    { target: 'view-market', navIdx: 1, text: "No Mercado, você investe na Bolsa (Trade) e compra Fundos de Investimento." },
+    { target: 'view-assets', navIdx: 2, text: "Em Ativos, compre Casas (para renda passiva) e Veículos (para ostentar na Galeria)." },
+    { target: 'view-ranking', navIdx: 3, text: "No Ranking, dispute contra IAs inteligentes para ver quem é o maior bilionário." }
+];
+
+function checkTutorial() {
+    if(!localStorage.getItem('tutCompleted_v2')) {
+        STATE.tutorialStep = 0;
+        showTutorialStep();
+    }
+}
+
+function restartTutorial() {
+    STATE.tutorialStep = 0;
+    document.getElementById('tutorialOverlay').classList.remove('hidden');
+    navTo('home'); // Volta para o inicio
+    showTutorialStep();
+}
+
+function showTutorialStep() {
+    const step = TUTORIAL_STEPS[STATE.tutorialStep];
+    if(!step) {
+        document.getElementById('tutorialOverlay').classList.add('hidden');
+        localStorage.setItem('tutCompleted_v2', 'true');
+        return;
+    }
+    
+    document.getElementById('tutorialOverlay').classList.remove('hidden');
+    document.getElementById('tutText').innerText = step.text;
+    
+    // Highlight Nav Item
+    document.querySelectorAll('.nav-item').forEach(el => el.style.color = "");
+    if(step.navIdx !== undefined) {
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems[step.navIdx].style.color = "#00c6ff"; // Highlight
+    }
+}
+
+function nextTutorial() {
+    STATE.tutorialStep++;
+    showTutorialStep();
+}
+function skipTutorial() {
+    localStorage.setItem('tutCompleted_v2', 'true');
+    document.getElementById('tutorialOverlay').classList.add('hidden');
+    document.querySelectorAll('.nav-item').forEach(el => el.style.color = ""); // Reset color
+}
+
+function resizeChart() {
+    setTimeout(drawChart, 100);
+}
+
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
