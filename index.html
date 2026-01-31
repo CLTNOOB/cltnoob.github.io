@@ -42,7 +42,7 @@ header {
     position: sticky; top: 0; z-index: 100;
     display: flex; justify-content: space-between; align-items: center;
 }
-h1 { margin: 0; font-size: 1.2rem; background: -webkit-linear-gradient(var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+h1 { margin: 0; font-size: 1.2rem; background: -webkit-linear-gradient(var(--primary), var(--secondary)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
 .save-status { font-size: 0.75rem; color: var(--text-muted); }
 
 /* --- Main Layout --- */
@@ -271,6 +271,9 @@ button.buy-btn { display: flex; justify-content: space-between; align-items: cen
             <button class="sub-tab-btn active" onclick="switchSubTab('assets', 'houses')">🏠 Imóveis</button>
             <button class="sub-tab-btn" onclick="switchSubTab('assets', 'vehicles')">🚗 Veículos</button>
             <button class="sub-tab-btn" onclick="switchSubTab('assets', 'gallery')">🖼️ Galeria</button>
+            <button class="sub-tab-btn" onclick="switchSubTab('assets', 'crypto')">💎 Crypto</button>
+            <button class="sub-tab-btn" onclick="switchSubTab('assets', 'auction')">🔨 Leilão</button>
+            <button class="sub-tab-btn" onclick="switchSubTab('assets', 'rental')">🔑 Aluguel</button>
         </div>
         
         <div id="sub-assets-houses">
@@ -283,6 +286,29 @@ button.buy-btn { display: flex; justify-content: space-between; align-items: cen
             <div class="card">
                 <p style="color:#ccc; text-align:center;">Seus itens raros e conquistas aparecem aqui.</p>
                 <div id="galleryGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(80px, 1fr)); gap:10px; margin-top:10px;"></div>
+            </div>
+        </div>
+        <div id="sub-assets-crypto" class="hidden">
+            <div class="card">
+                <h2>💎 Carteira de Criptomoedas</h2>
+                <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:10px; margin-bottom:15px;" id="cryptoGrid"></div>
+                <div id="cryptoList"></div>
+            </div>
+        </div>
+        <div id="sub-assets-auction" class="hidden">
+            <div class="card">
+                <h2>🔨 Leilões de Propriedades</h2>
+                <div id="auctionList"></div>
+            </div>
+        </div>
+        <div id="sub-assets-rental" class="hidden">
+            <div class="card">
+                <h2>🔑 Renda de Aluguel</h2>
+                <div class="stat-box" style="margin-bottom:15px;">
+                    <span class="stat-label">Renda Mensal de Aluguel</span>
+                    <div class="stat-value money-highlight" id="rentalTotalDisplay">0</div>
+                </div>
+                <div id="rentalPropertyList"></div>
             </div>
         </div>
     </div>
@@ -306,6 +332,14 @@ button.buy-btn { display: flex; justify-content: space-between; align-items: cen
             </div>
             <p style="font-size:0.8rem; color:#555; text-align:center; margin-top:10px;">IAs jogam em tempo real. Continue evoluindo!</p>
         </div>
+
+        <div class="card">
+            <h2>💬 Chat das IAs</h2>
+            <div style="background:rgba(0,0,0,0.3); border-radius:8px; padding:10px; height:150px; overflow-y:auto; margin-bottom:10px; font-size:0.85rem;">
+                <div id="aiMessageFeed"></div>
+            </div>
+            <button onclick="clearAiMessages()" class="secondary-btn">Limpar Chat</button>
+        </div>
     </div>
 
     <!-- SECTION: MENU (Settings & Prestige) -->
@@ -317,6 +351,16 @@ button.buy-btn { display: flex; justify-content: space-between; align-items: cen
                 <input type="text" id="newNameInput" placeholder="Novo nome" style="padding:8px; border-radius:6px; border:none; width:70%;">
                 <button class="secondary-btn" style="width:30%; margin-top:0;" onclick="changeName()">Salvar</button>
             </div>
+
+            <div style="margin-top:10px;">
+                <span class="stat-label">Divisas</span>
+                <div style="display:flex; gap:5px;">
+                    <button class="lev-btn currency-btn selected" onclick="setCurrency('BRL')">BRL 🇧🇷</button>
+                    <button class="lev-btn currency-btn" onclick="setCurrency('USD')">USD 🇺🇸</button>
+                    <button class="lev-btn currency-btn" onclick="setCurrency('EUR')">EUR 🇪🇺</button>
+                </div>
+                <small style="color:#999;">Câmbio: 1 BRL = <span id="exchangeDisplay">1.00</span></small>
+            </div>
             
             <hr style="border-color:rgba(255,255,255,0.1); margin:15px 0;">
             
@@ -326,6 +370,22 @@ button.buy-btn { display: flex; justify-content: space-between; align-items: cen
             <button onclick="document.getElementById('importFile').click()" class="secondary-btn">Importar Save</button>
             <input type="file" id="importFile" class="hidden" onchange="importSave(this)">
             <button onclick="resetGame()" class="danger-btn">🗑️ Resetar Tudo</button>
+        </div>
+
+        <div class="card">
+            <h2>🎯 Quests Diárias</h2>
+            <div id="questsList"></div>
+            <button onclick="rollNewQuests()" class="secondary-btn" style="margin-top:10px;">🔄 Trocar Quests (Próximas em <span id="questResetTimer">24h</span>)</button>
+        </div>
+
+        <div class="card">
+            <h2>⚡ Eventos Ativos</h2>
+            <div id="eventsDisplay"></div>
+        </div>
+
+        <div class="card">
+            <h2>🏅 Achievements</h2>
+            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:10px;" id="achievementsList"></div>
         </div>
 
         <div class="card">
@@ -399,7 +459,24 @@ const STATE = {
     startTime: Date.now(),
     lastSave: Date.now(),
     updatesRead: 0,
-    tutorialStep: 0
+    tutorialStep: 0,
+    // === NOVOS SISTEMAS ===
+    currency: 'BRL', // BRL, USD, EUR
+    exchangeRates: { 'BRL': 1, 'USD': 5.2, 'EUR': 5.8 },
+    inflation: 1.0, // 1.0 = sem inflação, 1.05 = 5% de inflação
+    cryptoPortfolio: {}, // { 'bitcoin': quantidade, 'ethereum': quantidade, ... }
+    auctionedProperties: [], // Propriedades compradas em leilão
+    rentalIncome: {}, // { propertyId: { monthlyIncome, tenant } }
+    achievements: [], // [ 'first_million', 'crypto_trader', etc ]
+    dailyQuests: [], // [ { id, target, progress, completed, reward } ]
+    lastQuestReset: Date.now(),
+    events: [], // [ { type, severity, description, active } ]
+    activeEvent: null,
+    auctionHistory: [], // Histórico de leilões
+    messages: [], // Mensagens das IAs
+    totalClicks: 0,
+    totalTrades: 0,
+    totalSpent: 0
 };
 
 const GAME_DATA = {
@@ -426,6 +503,45 @@ const GAME_DATA = {
         "2.1: IA de Ranking melhorada e competitiva.",
         "2.1: Notícias em tempo real baseadas na IA.",
         "2.0: Interface totalmente nova!",
+    ],
+    // === NOVOS DADOS ===
+    cryptoAssets: [
+        { symbol: 'BTC', name: 'Bitcoin', price: 100000, volatility: 3, icon: '₿' },
+        { symbol: 'ETH', name: 'Ethereum', price: 3500, volatility: 4, icon: '◆' },
+        { symbol: 'DOGE', name: 'Dogecoin', price: 0.5, volatility: 5, icon: '🐕' },
+        { symbol: 'XRP', name: 'Ripple', price: 2.5, volatility: 3, icon: '✦' },
+        { symbol: 'ADA', name: 'Cardano', price: 1.2, volatility: 4, icon: '♠' }
+    ],
+    auctionProperties: [
+        { id: 'penthouse_av_paulista', name: '🏰 Penthouse Av. Paulista', basePrice: 2000000, rentalYield: 25000, prestige: 'Alta' },
+        { id: 'mansao_jardins', name: '👑 Mansão Jardins', basePrice: 1500000, rentalYield: 20000, prestige: 'Alta' },
+        { id: 'apto_vila_mariana', name: '🏢 Apto Vila Mariana', basePrice: 800000, rentalYield: 12000, prestige: 'Média' },
+        { id: 'apto_pinheiros', name: '🏘️ Apto Pinheiros', basePrice: 600000, rentalYield: 9000, prestige: 'Média' },
+        { id: 'cobertura_itaim', name: '⭐ Cobertura Itaim', basePrice: 3000000, rentalYield: 35000, prestige: 'Máxima' }
+    ],
+    events: [
+        { type: 'crash', severity: 'high', description: 'CRASH NO MERCADO! Todas as ações caem 40%', effect: -0.4, duration: 30000 },
+        { type: 'opportunity', severity: 'low', description: 'Oportunidade! Preços em alta. +50% de retorno em investimentos', effect: 0.5, duration: 20000 },
+        { type: 'crisis', severity: 'high', description: 'CRISE ECONÔMICA! Inflação dispara 15%', effect: 'inflation', duration: 60000 },
+        { type: 'boom', severity: 'medium', description: 'BOOM ECONÔMICO! Crypto dispara 80%', effect: 0.8, duration: 25000 },
+        { type: 'scandal', severity: 'medium', description: 'Escândalo Corporativo. Uma IA perdeu 1 milhão!', effect: 'scandal', duration: 10000 }
+    ],
+    achievements: [
+        { id: 'first_million', name: '💰 Primeiro Milhão', desc: 'Alcance 1 milhão de dinheiro' },
+        { id: 'billionaire', name: '🤑 Bilionário', desc: 'Alcance 1 bilhão' },
+        { id: 'level_10', name: '📈 Escalador', desc: 'Chegue ao nível 10' },
+        { id: 'crypto_trader', name: '💎 Trader Crypto', desc: 'Compre 5 diferentes criptomoedas' },
+        { id: 'property_mogul', name: '🏰 Mogul Imobiliário', desc: 'Compre 10 propriedades em leilão' },
+        { id: 'landlord', name: '🔑 Senhor das Propriedades', desc: 'Ganhe 100k com aluguel' },
+        { id: 'lucky', name: '🍀 Sortudo', desc: 'Sobreviva a um crash de mercado' },
+        { id: 'prestige_1', name: '🏅 Prestígio I', desc: 'Prestigie uma vez' }
+    ],
+    dailyQuestTemplates: [
+        { type: 'clicks', target: 50, reward: 5000, desc: 'Clique no botão TRABALHAR 50 vezes' },
+        { type: 'earn', target: 100000, reward: 10000, desc: 'Ganhe 100k de dinheiro' },
+        { type: 'trades', target: 5, reward: 15000, desc: 'Faça 5 trades' },
+        { type: 'invest', target: 500000, reward: 20000, desc: 'Invista 500k' },
+        { type: 'level_up', target: 2, reward: 10000, desc: 'Suba 2 níveis' }
     ]
 };
 
@@ -488,6 +604,14 @@ function initUI() {
         </button>
     `).join('');
 
+    // Initialize Crypto, Auctions, Rental, Quests, Achievements
+    renderCrypto();
+    renderAuctions();
+    renderRental();
+    initDailyQuests();
+    renderAchievements();
+    renderEvents();
+
     // Changelog
     const logList = document.getElementById('changelogList');
     logList.innerHTML = GAME_DATA.updates.map(u => `<div style="padding:5px; border-bottom:1px solid #333">${u}</div>`).join('');
@@ -525,55 +649,83 @@ function switchSubTab(parent, sub) {
    GAMEPLAY LOGIC
    ========================================= */
 function ganharDinheiro() {
+    // Validação
+    if(STATE.money < 0 || isNaN(STATE.money)) STATE.money = 0;
+    
     const prestigeMul = 1 + (STATE.prestige * 0.05); 
     const amount = Math.floor(STATE.income * prestigeMul);
-    STATE.money += amount;
+    STATE.money = Math.max(0, STATE.money + amount);
+    STATE.totalClicks++;
+    
+    // Check Quests
+    updateQuestProgress('clicks', 1);
+    checkAchievement('first_million');
     updateStats();
 }
 
 function upgrade() {
     if(STATE.money >= STATE.upgradeCost) {
-        STATE.money -= STATE.upgradeCost;
+        STATE.money = Math.max(0, STATE.money - STATE.upgradeCost);
         STATE.income += Math.floor(1 + (STATE.level * 0.5));
         STATE.level++;
         STATE.upgradeCost = Math.floor(STATE.upgradeCost * 1.5);
+        
+        checkAchievement('level_10');
+        updateQuestProgress('level_up', 1);
         renderAll();
+    } else {
+        alert("❌ Dinheiro insuficiente!");
     }
 }
 
 function buyInvestment(idx) {
     const item = GAME_DATA.investments[idx];
-    if(STATE.money >= item.cost) {
-        STATE.money -= item.cost;
+    const adjustedCost = Math.floor(item.cost * STATE.inflation);
+    
+    if(STATE.money >= adjustedCost) {
+        STATE.money = Math.max(0, STATE.money - adjustedCost);
         STATE.passive += item.return;
         STATE.investments.push(idx);
-        alert(`Você comprou: ${item.name}!`);
+        STATE.totalSpent += adjustedCost;
+        addNews(`✅ Você comprou: ${item.name}!`);
+        updateQuestProgress('invest', adjustedCost);
+        checkAchievement('first_million');
         renderAll();
     } else {
-        alert("Dinheiro insuficiente!");
+        alert(`❌ Dinheiro insuficiente! Precisa de ${formatNumber(adjustedCost)}`);
     }
 }
 
 function buyHouse(idx) {
     const item = GAME_DATA.houses[idx];
-    if(STATE.money >= item.cost) {
-        STATE.money -= item.cost;
+    const adjustedCost = Math.floor(item.cost * STATE.inflation);
+    
+    if(STATE.money >= adjustedCost) {
+        STATE.money = Math.max(0, STATE.money - adjustedCost);
         STATE.passive += item.return;
         STATE.houses.push(idx);
-        alert(`Imóvel adquirido: ${item.name}`);
+        STATE.totalSpent += adjustedCost;
+        addNews(`🏠 Imóvel adquirido: ${item.name}`);
         renderAll();
-    } else alert("Falta verba!");
+    } else {
+        alert(`❌ Falta verba! Precisa de ${formatNumber(adjustedCost)}`);
+    }
 }
 
 function buyVehicle(idx) {
     const item = GAME_DATA.vehicles[idx];
-    if(STATE.money >= item.cost) {
-        STATE.money -= item.cost;
+    const adjustedCost = Math.floor(item.cost * STATE.inflation);
+    
+    if(STATE.money >= adjustedCost) {
+        STATE.money = Math.max(0, STATE.money - adjustedCost);
         STATE.vehicles.push(idx);
-        addToGallery(`Chave do ${item.name}`);
-        alert("Veículo na garagem!");
+        STATE.totalSpent += adjustedCost;
+        addToGallery(`🔑 Chave do ${item.name}`);
+        addNews(`🚗 Veículo na garagem!`);
         renderAll();
-    } else alert("Dinheiro insuficiente!");
+    } else {
+        alert(`❌ Dinheiro insuficiente! Precisa de ${formatNumber(adjustedCost)}`);
+    }
 }
 
 function addToGallery(itemName) {
@@ -644,14 +796,23 @@ function setLeverage(val) {
 
 function openTrade(direction) {
     if(activeTrade) return alert("Feche a posição atual antes de abrir outra.");
-    const val = parseFloat(document.getElementById('tradeAmount').value);
-    if(!val || val <= 0 || val > STATE.money) return alert("Valor inválido.");
     
-    STATE.money -= val;
+    const val = parseFloat(document.getElementById('tradeAmount').value);
+    
+    // Validação robusta
+    if(!val || isNaN(val) || val <= 0 || !isFinite(val)) {
+        return alert("❌ Valor inválido!");
+    }
+    if(val > STATE.money) return alert(`❌ Dinheiro insuficiente! Você tem ${formatNumber(STATE.money)}`);
+    
+    STATE.money = Math.max(0, STATE.money - val);
     activeTrade = { type: direction, entry: market.price, amount: val, leverage: leverage };
+    STATE.totalTrades++;
     
     document.getElementById('activeTradeInfo').classList.remove('hidden');
     document.getElementById('openTradeControls').classList.add('hidden');
+    
+    updateQuestProgress('trades', 1);
     renderAll();
 }
 
@@ -679,11 +840,15 @@ function closeTrade(forced = false) {
     const rawPnlPct = activeTrade.type === 'up' ? diffPct : -diffPct;
     const profit = Math.floor(activeTrade.amount * rawPnlPct * activeTrade.leverage);
     
-    const totalReturn = activeTrade.amount + profit;
-    if(totalReturn > 0) STATE.money += totalReturn;
+    const totalReturn = Math.max(0, activeTrade.amount + profit);
+    STATE.money = Math.max(0, STATE.money + totalReturn);
     
-    if(forced) alert("Posição LIQUIDADA! Você perdeu o investimento.");
-    else alert(`Trade fechado. Resultado: ${profit}`);
+    if(forced) {
+        addNews("🔴 LIQUIDAÇÃO! Você perdeu a posição!");
+        checkAchievement('lucky');
+    } else {
+        addNews(`Trade fechado. Resultado: ${profit > 0 ? '+' : ''}${profit}`);
+    }
     
     activeTrade = null;
     document.getElementById('activeTradeInfo').classList.add('hidden');
@@ -696,24 +861,40 @@ function closeTrade(forced = false) {
    ========================================= */
 function takeLoan() {
     const val = parseFloat(document.getElementById('loanInput').value);
-    if(!val || val <= 0) return;
-    const limit = Math.max(1000, STATE.money * 2); 
-    if(STATE.loan.debt + val > limit) return alert(`Banco negou. Limite de dívida: ${limit}`);
     
-    STATE.money += val;
-    STATE.loan.debt += val;
+    // Validação
+    if(!val || isNaN(val) || val <= 0 || !isFinite(val)) {
+        return alert("❌ Valor inválido!");
+    }
+    
+    const limit = Math.max(1000, STATE.money * 2); 
+    if(STATE.loan.debt + val > limit) {
+        return alert(`❌ Banco negou. Limite de dívida: ${formatNumber(limit)}`);
+    }
+    
+    STATE.money = Math.max(0, STATE.money + val);
+    STATE.loan.debt = Math.max(0, STATE.loan.debt + val);
+    addNews(`💰 Você pegou empréstimo de ${formatNumber(val)}`);
     renderAll();
 }
 
 function payLoan() {
     const val = parseFloat(document.getElementById('loanInput').value);
-    if(!val || val <= 0) return;
+    
+    // Validação
+    if(!val || isNaN(val) || val <= 0 || !isFinite(val)) {
+        return alert("❌ Valor inválido!");
+    }
+    
     const toPay = Math.min(val, STATE.loan.debt);
     if(STATE.money >= toPay) {
-        STATE.money -= toPay;
-        STATE.loan.debt -= toPay;
+        STATE.money = Math.max(0, STATE.money - toPay);
+        STATE.loan.debt = Math.max(0, STATE.loan.debt - toPay);
+        addNews(`✅ Você pagou ${formatNumber(toPay)} da dívida`);
         renderAll();
-    } else alert("Dinheiro insuficiente.");
+    } else {
+        alert(`❌ Dinheiro insuficiente! Você tem ${formatNumber(STATE.money)}`);
+    }
 }
 
 /* =========================================
@@ -736,46 +917,55 @@ function initRanking() {
             money: Math.floor(Math.random() * 2000),
             level: Math.floor(Math.random() * 5) + 1,
             income: p.income,
-            strategy: p.strategy
+            strategy: p.strategy,
+            crypto: {},
+            auctions: 0
         }));
     }
 }
 
 function updateRankingSim() {
-    // Calcula velocidade de crescimento do jogador para a IA acompanhar
+    // Calcula velocidade de crescimento do jogador
     const playerVelocity = (STATE.income * 2) + STATE.passive + 10;
     
     fakePlayers.forEach(p => {
-        // Renda base da IA
         let gain = p.income + (Math.random() * playerVelocity * 0.5);
-        
-        // Simulação de ações baseada em estratégia
         const actionRoll = Math.random();
         
-        if(p.strategy === "risk" && actionRoll < 0.2) {
-            // IA faz "trade" ou investimento arriscado
-            const result = (Math.random() - 0.4); // Viés positivo leve
-            gain += gain * result * 5; 
-            if(result > 0.3) triggerAiNews(p.name, "acertou um trade alavancado!");
+        if(p.strategy === "risk" && actionRoll < 0.15) {
+            const result = (Math.random() - 0.3);
+            gain += gain * result * 5;
+            if(result > 0.4) {
+                triggerAiNews(p.name, "💰 acertou um trade alavancado!");
+                aiAddMessage(`${p.name}: Isso é fácil demais! 🤑`);
+            }
         } 
-        else if(p.strategy === "steady" && actionRoll < 0.1) {
-            // IA compra imóvel
-            p.income += 10; 
-            gain -= 500; // Gasta dinheiro
-            triggerAiNews(p.name, "adquiriu novos imóveis.");
+        else if(p.strategy === "steady" && actionRoll < 0.12) {
+            p.income += 5;
+            gain -= Math.floor(gain * 0.3);
+            triggerAiNews(p.name, "📦 adquiriu novos imóveis.");
+            aiAddMessage(`${p.name}: Mais um leilão ganho! 🏰`);
         }
         else if(p.strategy === "saver") {
-            // Apenas acumula juros compostos
-            gain *= 1.05;
+            gain *= 1.08;
+            if(actionRoll < 0.05) {
+                aiAddMessage(`${p.name}: Paciência é ouro... 🎯`);
+            }
+        }
+        
+        // Reações a eventos
+        if(STATE.activeEvent) {
+            const eventEffect = STATE.activeEvent.type === 'crash' ? -0.2 : 0.1;
+            gain *= (1 + eventEffect);
         }
 
-        p.money += Math.floor(gain);
-        if(p.money < 0) p.money = 100; // Evita falência total
+        p.money += Math.floor(Math.max(0, gain));
+        if(p.money < 0) p.money = 100;
 
-        // Evolução de nível
-        if(p.money > p.level * 2000 && Math.random() < 0.1) {
+        if(p.money > p.level * 2500 && Math.random() < 0.15) {
             p.level++;
-            triggerAiNews(p.name, `subiu para o Nível ${p.level}!`);
+            triggerAiNews(p.name, `⬆️ subiu para o Nível ${p.level}!`);
+            aiAddMessage(`${p.name}: Subi de nível! Obrigado mercado! 📈`);
         }
     });
     
@@ -811,13 +1001,373 @@ function renderRanking(criteria) {
 function updateRankingVisuals() { renderRanking('money'); }
 
 /* =========================================
-   CORE LOOPS & UTILS
+   CRYPTO SYSTEM
    ========================================= */
+function buyCrypto(symbol) {
+    const val = parseFloat(document.getElementById(`cryptoInput_${symbol}`).value);
+    const crypto = GAME_DATA.cryptoAssets.find(c => c.symbol === symbol);
+    
+    if(!val || isNaN(val) || val <= 0 || !isFinite(val)) return alert("❌ Valor inválido!");
+    
+    const cost = val * crypto.price;
+    if(STATE.money < cost) return alert(`❌ Dinheiro insuficiente!`);
+    
+    STATE.money = Math.max(0, STATE.money - cost);
+    if(!STATE.cryptoPortfolio[symbol]) STATE.cryptoPortfolio[symbol] = 0;
+    STATE.cryptoPortfolio[symbol] += val;
+    
+    addNews(`💎 Você comprou ${val} ${symbol}!`);
+    checkAchievement('crypto_trader');
+    renderAll();
+}
+
+function sellCrypto(symbol) {
+    const val = parseFloat(document.getElementById(`cryptoSellInput_${symbol}`).value);
+    const crypto = GAME_DATA.cryptoAssets.find(c => c.symbol === symbol);
+    const owned = STATE.cryptoPortfolio[symbol] || 0;
+    
+    if(!val || isNaN(val) || val <= 0 || !isFinite(val)) return alert("❌ Valor inválido!");
+    if(val > owned) return alert(`❌ Você só tem ${owned} ${symbol}`);
+    
+    const profit = val * crypto.price;
+    STATE.money += profit;
+    STATE.cryptoPortfolio[symbol] -= val;
+    
+    addNews(`✅ Você vendeu ${val} ${symbol} por ${formatNumber(profit)}!`);
+    renderAll();
+}
+
+function renderCrypto() {
+    const grid = document.getElementById('cryptoGrid');
+    const list = document.getElementById('cryptoList');
+    
+    grid.innerHTML = GAME_DATA.cryptoAssets.map(c => {
+        const owned = STATE.cryptoPortfolio[c.symbol] || 0;
+        const worth = owned * c.price;
+        return `
+            <div style="background:rgba(0,150,200,0.1); border:1px solid #0099cc; border-radius:8px; padding:10px; text-align:center;">
+                <div style="font-size:1.5rem;">${c.icon}</div>
+                <div style="font-weight:bold; color:#0ff;">${c.symbol}</div>
+                <small style="color:#999;">$${c.price.toFixed(2)}</small>
+                <div style="color:#0f0; margin-top:5px; font-size:0.8rem;">Qty: ${owned.toFixed(4)}</div>
+                <div style="color:#f90; font-size:0.8rem;">$${formatNumber(worth)}</div>
+            </div>
+        `;
+    }).join('');
+    
+    list.innerHTML = GAME_DATA.cryptoAssets.map(c => `
+        <div style="display:flex; gap:5px; margin-bottom:10px; background:#222; padding:8px; border-radius:6px;">
+            <div style="flex:1;">
+                <input type="number" id="cryptoInput_${c.symbol}" placeholder="Quantidade" style="width:100%; padding:5px; background:#333; border:none; color:#fff; border-radius:4px; font-size:0.8rem;">
+                <button onclick="buyCrypto('${c.symbol}')" style="width:100%; margin-top:3px; padding:5px; background:#0f0; color:#000;">Comprar</button>
+            </div>
+            <div style="flex:1;">
+                <input type="number" id="cryptoSellInput_${c.symbol}" placeholder="Vender" style="width:100%; padding:5px; background:#333; border:none; color:#fff; border-radius:4px; font-size:0.8rem;">
+                <button onclick="sellCrypto('${c.symbol}')" style="width:100%; margin-top:3px; padding:5px; background:#f00; color:#fff;">Vender</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function tickCryptoMarket() {
+    GAME_DATA.cryptoAssets.forEach(crypto => {
+        const change = (Math.random() - 0.5) * crypto.volatility;
+        crypto.price = Math.max(0.01, crypto.price * (1 + change / 100));
+    });
+}
+
+/* =========================================
+   AUCTION SYSTEM
+   ========================================= */
+function renderAuctions() {
+    const list = document.getElementById('auctionList');
+    list.innerHTML = GAME_DATA.auctionProperties.map((prop, i) => {
+        const adjustedPrice = Math.floor(prop.basePrice * STATE.inflation);
+        const hasProperty = STATE.auctionedProperties.includes(prop.id);
+        
+        return `
+            <div style="background:#222; padding:10px; border-radius:8px; margin-bottom:8px; border-left:4px solid ${hasProperty ? '#0f0' : '#0ff'};">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-weight:bold; color:#0ff;">${prop.name}</div>
+                        <small style="color:#999;">Renda: ${formatNumber(prop.rentalYield)}/mês | Prestígio: ${prop.prestige}</small>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="color:#0f0; font-weight:bold;">$${formatNumber(adjustedPrice)}</div>
+                        <button onclick="buyAuctionProperty('${prop.id}')" style="padding:5px 10px; margin-top:5px; ${hasProperty ? 'opacity:0.5; cursor:not-allowed;' : ''}" ${hasProperty ? 'disabled' : ''}>
+                            ${hasProperty ? '✅ Comprado' : 'Licitar'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function buyAuctionProperty(propId) {
+    const prop = GAME_DATA.auctionProperties.find(p => p.id === propId);
+    const adjustedPrice = Math.floor(prop.basePrice * STATE.inflation);
+    
+    if(STATE.auctionedProperties.includes(propId)) {
+        return alert("❌ Você já possui esta propriedade!");
+    }
+    
+    if(STATE.money < adjustedPrice) {
+        return alert(`❌ Dinheiro insuficiente! Precisa de ${formatNumber(adjustedPrice)}`);
+    }
+    
+    STATE.money = Math.max(0, STATE.money - adjustedPrice);
+    STATE.auctionedProperties.push(propId);
+    STATE.rentalIncome[propId] = { monthlyIncome: prop.rentalYield, tenant: null };
+    
+    addNews(`🏰 Você comprou: ${prop.name}!`);
+    checkAchievement('property_mogul');
+    renderAll();
+}
+
+/* =========================================
+   RENTAL SYSTEM
+   ========================================= */
+function renderRental() {
+    const list = document.getElementById('rentalPropertyList');
+    let totalRental = 0;
+    
+    const properties = STATE.auctionedProperties.map(propId => {
+        const prop = GAME_DATA.auctionProperties.find(p => p.id === propId);
+        const rental = STATE.rentalIncome[propId] || { monthlyIncome: 0 };
+        totalRental += rental.monthlyIncome;
+        return `
+            <div style="background:#1a1a1a; padding:8px; border-radius:6px; margin-bottom:8px; display:flex; justify-content:space-between;">
+                <div>
+                    <strong style="color:#0ff;">${prop.name}</strong>
+                    <br><small style="color:#999;">Renda Mensal: ${formatNumber(rental.monthlyIncome)}</small>
+                </div>
+                <div style="color:#0f0; font-weight:bold;">+${formatNumber(rental.monthlyIncome)}</div>
+            </div>
+        `;
+    }).join('');
+    
+    document.getElementById('rentalTotalDisplay').innerText = formatNumber(totalRental);
+    list.innerHTML = properties || '<p style="color:#999; text-align:center;">Nenhuma propriedade para alugar ainda.</p>';
+}
+
+/* =========================================
+   EVENT SYSTEM
+   ========================================= */
+function triggerRandomEvent() {
+    if(STATE.activeEvent) return; // Apenas um evento por vez
+    
+    const event = GAME_DATA.events[Math.floor(Math.random() * GAME_DATA.events.length)];
+    STATE.activeEvent = { ...event, startTime: Date.now() };
+    
+    addNews(`⚠️ ${event.description}`);
+    
+    if(event.type === 'inflation') {
+        STATE.inflation *= 1.15;
+    } else if(event.type === 'crash') {
+        fakePlayers.forEach(p => p.money *= 0.6);
+    }
+    
+    setTimeout(() => {
+        STATE.activeEvent = null;
+        addNews(`✅ Evento terminado.`);
+    }, event.duration);
+    
+    renderAll();
+}
+
+function renderEvents() {
+    const display = document.getElementById('eventsDisplay');
+    if(!STATE.activeEvent) {
+        display.innerHTML = '<p style="color:#999; text-align:center;">Nenhum evento ativo no momento.</p>';
+        return;
+    }
+    
+    const timeLeft = Math.max(0, STATE.activeEvent.duration - (Date.now() - STATE.activeEvent.startTime));
+    display.innerHTML = `
+        <div style="background:${STATE.activeEvent.severity === 'high' ? '#ff3333' : '#ff9900'}; padding:10px; border-radius:6px; color:#fff;">
+            <strong>${STATE.activeEvent.description}</strong>
+            <div style="font-size:0.8rem; margin-top:5px;">Tempo restante: ${Math.ceil(timeLeft / 1000)}s</div>
+        </div>
+    `;
+}
+
+/* =========================================
+   ACHIEVEMENT SYSTEM
+   ========================================= */
+function checkAchievement(id) {
+    if(STATE.achievements.includes(id)) return;
+    
+    let unlock = false;
+    
+    if(id === 'first_million' && STATE.money >= 1000000) unlock = true;
+    if(id === 'billionaire' && STATE.money >= 1000000000) unlock = true;
+    if(id === 'level_10' && STATE.level >= 10) unlock = true;
+    if(id === 'crypto_trader' && Object.keys(STATE.cryptoPortfolio).length >= 5) unlock = true;
+    if(id === 'property_mogul' && STATE.auctionedProperties.length >= 10) unlock = true;
+    if(id === 'lucky' && STATE.activeEvent?.type === 'crash') unlock = true;
+    if(id === 'prestige_1' && STATE.prestige >= 1) unlock = true;
+    
+    if(unlock) {
+        STATE.achievements.push(id);
+        const achv = GAME_DATA.achievements.find(a => a.id === id);
+        addNews(`🏆 ACHIEVEMENT DESBLOQUEADO: ${achv.name}!`);
+        aiAddMessage(`${STATE.name}: CONSEGUI! ${achv.name}! 🎉`);
+    }
+}
+
+function renderAchievements() {
+    const list = document.getElementById('achievementsList');
+    list.innerHTML = GAME_DATA.achievements.map(achv => {
+        const unlocked = STATE.achievements.includes(achv.id);
+        return `
+            <div style="background:${unlocked ? '#1a3a1a' : '#1a1a1a'}; border:1px solid ${unlocked ? '#0f0' : '#444'}; padding:10px; border-radius:8px; text-align:center; opacity:${unlocked ? '1' : '0.5'};">
+                <div style="font-size:1.2rem;">🏆</div>
+                <strong style="color:${unlocked ? '#0f0' : '#999'};">${achv.name}</strong>
+                <small style="display:block; margin-top:3px; color:#ccc;">${achv.desc}</small>
+            </div>
+        `;
+    }).join('');
+}
+
+/* =========================================
+   DAILY QUEST SYSTEM
+   ========================================= */
+function initDailyQuests() {
+    if(!STATE.dailyQuests.length) {
+        generateNewQuests();
+    }
+    updateQuestTimer();
+}
+
+function generateNewQuests() {
+    STATE.dailyQuests = [];
+    const templates = GAME_DATA.dailyQuestTemplates;
+    
+    for(let i = 0; i < 3; i++) {
+        const template = templates[Math.floor(Math.random() * templates.length)];
+        STATE.dailyQuests.push({
+            id: i,
+            type: template.type,
+            target: template.target,
+            progress: 0,
+            completed: false,
+            reward: template.reward,
+            desc: template.desc
+        });
+    }
+}
+
+function rollNewQuests() {
+    const now = Date.now();
+    const hoursSinceReset = (now - STATE.lastQuestReset) / (1000 * 60 * 60);
+    
+    if(hoursSinceReset < 24) {
+        const timeLeft = Math.ceil(24 - hoursSinceReset);
+        return alert(`❌ Próximas quests em ${timeLeft} horas!`);
+    }
+    
+    STATE.lastQuestReset = now;
+    generateNewQuests();
+    addNews("🎯 Novas quests diárias disponíveis!");
+    renderAll();
+}
+
+function updateQuestProgress(type, amount) {
+    STATE.dailyQuests.forEach(q => {
+        if(q.type === type && !q.completed) {
+            q.progress += amount;
+            if(q.progress >= q.target) {
+                q.completed = true;
+                STATE.money += q.reward;
+                addNews(`✅ QUEST CONCLUÍDA! +${formatNumber(q.reward)}`);
+                aiAddMessage(`${STATE.name}: Completei mais uma quest! 🎯`);
+            }
+        }
+    });
+}
+
+function renderQuests() {
+    const list = document.getElementById('questsList');
+    list.innerHTML = STATE.dailyQuests.map((q, i) => {
+        const progress = Math.min(100, (q.progress / q.target) * 100);
+        return `
+            <div style="background:#1a1a1a; padding:8px; border-radius:6px; margin-bottom:8px; border-left:3px solid ${q.completed ? '#0f0' : '#0ff'};">
+                <div style="display:flex; justify-content:space-between;">
+                    <strong style="color:${q.completed ? '#0f0' : '#fff'};">${q.desc}</strong>
+                    <span style="color:#0f0;">+${formatNumber(q.reward)}</span>
+                </div>
+                <div style="background:#333; border-radius:4px; height:6px; margin-top:5px; overflow:hidden;">
+                    <div style="background:#0f0; height:100%; width:${progress}%; transition:width 0.3s;"></div>
+                </div>
+                <small style="color:#999;">${q.progress}/${q.target}</small>
+            </div>
+        `;
+    }).join('');
+}
+
+function updateQuestTimer() {
+    const now = Date.now();
+    const hoursSinceReset = (now - STATE.lastQuestReset) / (1000 * 60 * 60);
+    const hoursLeft = Math.ceil(24 - hoursSinceReset);
+    document.getElementById('questResetTimer').innerText = `${hoursLeft}h`;
+}
+
+/* =========================================
+   AI MESSAGE SYSTEM
+   ========================================= */
+function aiAddMessage(msg) {
+    STATE.messages.push({
+        text: msg,
+        time: new Date().toLocaleTimeString()
+    });
+    
+    if(STATE.messages.length > 20) STATE.messages.shift();
+    renderAiMessages();
+}
+
+function renderAiMessages() {
+    const feed = document.getElementById('aiMessageFeed');
+    feed.innerHTML = STATE.messages.map(msg => `
+        <div style="padding:5px; border-bottom:1px solid #333; font-size:0.85rem;">
+            <span style="color:#0ff;">[${msg.time}]</span> ${msg.text}
+        </div>
+    `).reverse().join('');
+    
+    feed.scrollTop = feed.scrollHeight;
+}
+
+function clearAiMessages() {
+    STATE.messages = [];
+    renderAiMessages();
+    addNews("Chat limpo.");
+}
+
+/* =========================================
+   CURRENCY & INFLATION
+   ========================================= */
+function setCurrency(curr) {
+    STATE.currency = curr;
+    const rate = STATE.exchangeRates[curr];
+    document.getElementById('exchangeDisplay').innerText = `1 BRL = ${rate.toFixed(2)} ${curr}`;
+    
+    // Trocar botões visuais
+    document.querySelectorAll('.currency-btn').forEach(b => b.classList.remove('selected'));
+    event.target.classList.add('selected');
+    
+    addNews(`💱 Moeda alterada para ${curr}`);
+}
+
+function updateInflation() {
+    // Inflação base + eventos
+    STATE.inflation *= 1.002; // 0.2% por tick
+}
+
 function startLoops() {
     passiveTimer = setInterval(() => {
         if(STATE.passive > 0) {
             const prestigeMul = 1 + (STATE.prestige * 0.05);
-            STATE.money += Math.floor(STATE.passive * prestigeMul);
+            STATE.money = Math.max(0, STATE.money + Math.floor(STATE.passive * prestigeMul));
             updateStats();
         }
         if(STATE.loan.debt > 0) {
@@ -825,17 +1375,24 @@ function startLoops() {
             if(now - STATE.loan.lastUpdate > 30000) {
                 STATE.loan.debt = Math.floor(STATE.loan.debt * 1.02);
                 STATE.loan.lastUpdate = now;
-                addNews("O banco cobrou juros do seu empréstimo.");
+                addNews("🏦 Banco cobrou juros!");
             }
         }
     }, 1000);
 
     initMarket();
-    marketTimer = setInterval(() => tickMarket(), 500);
+    marketTimer = setInterval(() => {
+        tickMarket();
+        tickCryptoMarket();
+        updateInflation();
+    }, 500);
 
-    // Save & Ranking Update (5s)
+    // Save & Ranking & Events (5s)
     saveTimer = setInterval(() => {
         updateRankingSim();
+        renderQuests();
+        updateQuestTimer();
+        if(Math.random() < 0.1) triggerRandomEvent();
         saveGame();
     }, 5000);
 }
@@ -850,13 +1407,21 @@ function updateStats() {
     
     const req = 1000000 * (STATE.prestige + 1);
     const btnP = document.getElementById('btnPrestige');
-    btnP.innerText = `Prestigiar (Req: ${formatNumber(req)})`;
-    btnP.disabled = STATE.money < req;
+    if(btnP) {
+        btnP.innerText = `Prestigiar (Req: ${formatNumber(req)})`;
+        btnP.disabled = STATE.money < req;
+    }
 }
 
 function renderAll() {
     updateStats();
     renderGallery();
+    renderCrypto();
+    renderAuctions();
+    renderRental();
+    renderAchievements();
+    renderQuests();
+    renderEvents();
 }
 
 function formatNumber(num) {
@@ -901,6 +1466,13 @@ function loadGame() {
         document.getElementById('playerNameDisplay').innerText = STATE.name;
         document.getElementById('prestigeMedals').innerText = STATE.prestige;
         document.getElementById('prestigeBonus').innerText = (STATE.prestige * 5) + "%";
+    }
+    
+    // Iniciar crypto com preços aleatórios
+    if(Object.keys(STATE.cryptoPortfolio).length === 0) {
+        GAME_DATA.cryptoAssets.forEach(c => {
+            STATE.cryptoPortfolio[c.symbol] = 0;
+        });
     }
 }
 
@@ -950,7 +1522,14 @@ function doPrestige() {
     STATE.vehicles = [];
     STATE.investments = [];
     STATE.loan.debt = 0;
+    STATE.auctionedProperties = [];
+    STATE.rentalIncome = {};
+    STATE.cryptoPortfolio = {};
+    STATE.totalClicks = 0;
+    STATE.totalTrades = 0;
+    STATE.totalSpent = 0;
     
+    checkAchievement('prestige_1');
     saveGame();
     location.reload();
 }
@@ -1030,3 +1609,4 @@ function resizeChart() {
 </script>
 </body>
 </html>
+
